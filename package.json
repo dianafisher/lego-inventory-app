@@ -1,5 +1,6 @@
 {
   "name": "lego-inventory-app",
+  "private": true,
   "version": "0.0.1",
   "description": "An app to keep track of which Lego sets you have.",
   "engines": {
