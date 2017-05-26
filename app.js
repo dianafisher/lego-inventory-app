@@ -12,17 +12,6 @@ app.set('port', (process.env.PORT || 5000));
 
 app.use('/', index);
 
-// app.get('/', function(req, res) {
-//   res.send('Hello World!');
-// });
-//
-// app.get('/barcode/:code', function(req, res) {
-//   const code = req.params.code;
-//   if (!code) {
-//     console.error('Need to supply a barcode!');
-//   }
-// });
-
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
