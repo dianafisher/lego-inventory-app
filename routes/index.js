@@ -17,6 +17,14 @@ router.get('/cool', function(req, res) {
   res.send(cool());
 });
 
+/* Reverse a string */
+router.get('/reverse/:text', (req, res) => {
+  const reverse = [...req.params.text].reverse().join('');
+  res.send(reverse);
+
+});
+
+/* Barcode Lookup */
 router.get('/barcodes/:code', barcodeController.lookupBarCode);
 
 module.exports = router;
