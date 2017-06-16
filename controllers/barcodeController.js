@@ -30,7 +30,7 @@ exports.lookupBarCode = (req, res) => {
     'upc': code
   });
 
-  console.log(postData);
+  // console.log(postData);
   // req.write('{ "upc": "4002293401102" }')
   request.write(postData);
 
