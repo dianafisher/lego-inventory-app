@@ -6,7 +6,13 @@ const soap = require('soap');
 const router = express.Router();
 
 const barcodeController = require('../controllers/barcodeController');
+const bricksetController = require('../controllers/bricksetController');
+const sampleController = require('../controllers/sampleController');
+
 const { catchErrors } = require('../handlers/errorHandlers');
+
+// specify the collection in our inventory database
+const LEGOS_COLLECTION = "legos";
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -16,6 +22,8 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/cool', function(req, res) {
+  console.log(req.headers);
+
   res.send(cool());
 });
 
@@ -28,6 +36,7 @@ router.get('/reverse/:text', (req, res) => {
 
 /* Barcode Lookup */
 router.get('/barcodes/:code', barcodeController.lookupBarCode);
+router.get('/sets/', bricksetController.testApiKey);
 
 router.get('/test/:code', function(req, res) {
   const barcode = req.params.code;
@@ -58,5 +67,7 @@ router.get('/test/:code', function(req, res) {
 
   });
 });
+
+router.get('/sample', sampleController.getRandomSet);
 
 module.exports = router;

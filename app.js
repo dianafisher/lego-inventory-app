@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // set up the port
 app.set('port', (process.env.PORT || 5000));
 
-app.use('/', index);
+// app.use('/', index);
 
 // // error handler
 // app.use(function(err, req, res, next) {
@@ -51,7 +51,7 @@ app.use('/', index);
 // });
 
 // If that above routes didnt work, we 404 them and forward to error handler
-app.use(errorHandlers.notFound);
+// app.use(errorHandlers.notFound);
 
 // One of our error handlers will see if these errors are just validation errors
 // app.use(errorHandlers.flashValidationErrors);
@@ -82,6 +82,19 @@ mongodb.MongoClient.connect(url, function(err, database) {
     console.log('Node app is running on port', app.get('port'));
   });
 });
+
+const LEGOS_COLLECTION = "legos";
+
+// LEGOS API routes
+app.get("/api/legos", function(req, res) {
+  db.collection(LEGOS_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      return res.status(500).json(err);
+    }
+    return res.status(200).json(docs);
+  });
+})
+
 
 // // start the app
 // app.listen(app.get('port'), function() {
