@@ -2,7 +2,7 @@ const express = require('express');
 const cool = require('cool-ascii-faces');
 const csv = require('csv');
 const soap = require('soap');
-
+const ObjectID = require('mongodb').ObjectID;
 const router = express.Router();
 
 const barcodeController = require('../controllers/barcodeController');
@@ -77,6 +77,10 @@ router.get('/test/:code', function(req, res) {
 });
 
 // LEGOS API routes
+
+/*  "/api/sets"
+ *  GET: finds all sets
+ */
 router.get("/api/sets", function(req, res) {
   db.collection(LEGOS_COLLECTION).find({}).toArray(function(err, docs) {
     if (err) {
@@ -88,6 +92,9 @@ router.get("/api/sets", function(req, res) {
   });
 });
 
+/*  "/api/sets"
+ *  POST: creates a new set
+ */
 router.post("/api/sets", function(req, res) {
   console.log('body', req.body);
   var newLego = req.body;
@@ -106,7 +113,51 @@ router.post("/api/sets", function(req, res) {
       }
     });
   }
+});
 
+/*  "/api/sets/:id"
+ *  GET: find set by id
+ */
+router.get("/api/sets/:id", function(req, res) {
+  db.collection(LEGOS_COLLECTION).findOne({_id: new ObjectID(req.params.id)}, function(err, result){
+    if (err) {
+      handleError(res, err.message, "Failed to get set");
+    } else {
+      res.status(200).json(doc);
+    }
+  });
+});
+
+/*  "/api/sets/:id"
+ *  PUT: update set by id
+ */
+router.put("/api/sets/:id", function(req, res) {
+  var updateDoc = req.body;
+  console.log('updateDoc', updateDoc);
+  console.log(req.params.id);
+  delete updateDoc._id;
+
+  db.collection(LEGOS_COLLECTION).updateOne({_id: new ObjectID(req.params.id)}, updateDoc, function(err, result){
+    if (err) {
+      handleError(res, err.message, "Failed to update set");
+    } else {
+      updateDoc._id = req.params.id;
+      res.status(200).json(updateDoc);
+    }
+  });
+});
+
+/*  "/api/sets/:id"
+ *  DELETE: deletes set by id
+ */
+router.delete("/api/sets/:id", function(req, res) {
+  db.collection(LEGOS_COLLECTION).deleteOne({_id: new ObjectID(req.params.id)}, function(err, result){
+    if (err) {
+      handleError(res, err.message, "Failed to delete set");
+    } else {
+      res.status(200).json(req.params.id);
+    }
+  });
 });
 
 
