@@ -14,6 +14,14 @@ const { catchErrors } = require('../handlers/errorHandlers');
 // specify the collection in our inventory database
 const LEGOS_COLLECTION = "legos";
 
+let db;  // variable to hold our database
+
+// Generic error handler used by all endpoints
+function handleError(res, reason, message, code) {
+  console.log("ERROR: " + reason);
+  res.status(code || 500).json({"error": message});
+}
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   // res.render('index', { title: 'Lego Inventory' });
@@ -68,6 +76,45 @@ router.get('/test/:code', function(req, res) {
   });
 });
 
+// LEGOS API routes
+router.get("/api/sets", function(req, res) {
+  db.collection(LEGOS_COLLECTION).find({}).toArray(function(err, docs) {
+    if (err) {
+      handleError(res, err.message, "Failed to get sets");
+    } else {
+      res.status(200).json(docs);
+    }
+
+  });
+});
+
+router.post("/api/sets", function(req, res) {
+  console.log('body', req.body);
+  var newLego = req.body;
+
+  if (!req.body.title) {
+    // return res.status(500).json(err);
+    handleError(res, "Invalid user input", "Must provide a set title.", 400);
+  }
+  else {
+    db.collection(LEGOS_COLLECTION).insertOne(newLego, function(err, doc) {
+      if (err) {
+        // return res.status(500).json(err);
+        handleError(res, err.message, "Failed to create new set.");
+      } else {
+        res.status(201).json(doc.ops[0]);
+      }
+    });
+  }
+
+});
+
+
 router.get('/sample', sampleController.getRandomSet);
 
-module.exports = router;
+module.exports.setDB = function(database) {
+  console.log(database);
+  db = database;
+}
+
+module.exports.router = router;

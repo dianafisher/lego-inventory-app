@@ -28,7 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // set up the port
 app.set('port', (process.env.PORT || 5000));
 
-// app.use('/', index);
+app.use('/', index.router);
 
 // // error handler
 // app.use(function(err, req, res, next) {
@@ -57,17 +57,17 @@ app.set('port', (process.env.PORT || 5000));
 // app.use(errorHandlers.flashValidationErrors);
 
 // Otherwise this was a really bad error we didn't expect! Shoot eh
-if (app.get('env') === 'development') {
-  /* Development Error Handler - Prints stack trace */
-  app.use(errorHandlers.developmentErrors);
-}
+// if (app.get('env') === 'development') {
+//   /* Development Error Handler - Prints stack trace */
+//   app.use(errorHandlers.developmentErrors);
+// }
 
 // production error handler
-app.use(errorHandlers.productionErrors);
+// app.use(errorHandlers.productionErrors);
 
 // MongoDB url
 const url = 'mongodb://localhost:27017/inventory';  // if the database does not exist, mongodb will create it
-var db;
+// var db;
 
 mongodb.MongoClient.connect(url, function(err, database) {
   if (err) {
@@ -76,6 +76,7 @@ mongodb.MongoClient.connect(url, function(err, database) {
   }
 
   db = database;
+  index.setDB(database);
   console.log("Database connection ready");
 
   const server = app.listen(app.get('port'), function() {
@@ -84,16 +85,6 @@ mongodb.MongoClient.connect(url, function(err, database) {
 });
 
 const LEGOS_COLLECTION = "legos";
-
-// LEGOS API routes
-app.get("/api/legos", function(req, res) {
-  db.collection(LEGOS_COLLECTION).find({}).toArray(function(err, docs) {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    return res.status(200).json(docs);
-  });
-})
 
 
 // // start the app
