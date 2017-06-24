@@ -44,7 +44,9 @@ router.get('/reverse/:text', (req, res) => {
 
 /* Barcode Lookup */
 router.get('/barcodes/:code', barcodeController.lookupBarCode);
-router.get('/sets/', bricksetController.testApiKey);
+router.get('/testKey', bricksetController.testApiKey);
+router.get('/sets/', bricksetController.lookupSet);
+router.get('/sets/:code', bricksetController.hopethisworks);
 
 router.get('/test/:code', function(req, res) {
   const barcode = req.params.code;
@@ -160,8 +162,6 @@ router.delete("/api/sets/:id", function(req, res) {
   });
 });
 
-
-router.get('/sample', sampleController.getRandomSet);
 
 module.exports.setDB = function(database) {
   console.log(database);
