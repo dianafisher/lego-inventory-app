@@ -1,3 +1,6 @@
+// import environmental variables from our variables.env file
+require('dotenv').config({ path: '.env' });
+
 const express = require('express');
 const https = require('https');
 const path = require('path');
@@ -66,8 +69,7 @@ app.use('/', index.router);
 // app.use(errorHandlers.productionErrors);
 
 // MongoDB url
-const url = 'mongodb://localhost:27017/inventory';  // if the database does not exist, mongodb will create it
-// var db;
+const url = process.env.DATABASE; // if the database does not exist, mongodb will create it
 
 mongodb.MongoClient.connect(url, function(err, database) {
   if (err) {
@@ -75,7 +77,6 @@ mongodb.MongoClient.connect(url, function(err, database) {
     process.exit(1);
   }
 
-  db = database;
   index.setDB(database);
   console.log("Database connection ready");
 
@@ -83,9 +84,6 @@ mongodb.MongoClient.connect(url, function(err, database) {
     console.log('Node app is running on port', app.get('port'));
   });
 });
-
-const LEGOS_COLLECTION = "legos";
-
 
 // // start the app
 // app.listen(app.get('port'), function() {
