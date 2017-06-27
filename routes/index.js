@@ -2,6 +2,8 @@ const express = require('express');
 const cool = require('cool-ascii-faces');
 const csv = require('csv');
 const ObjectID = require('mongodb').ObjectID;
+const https = require('https');
+const DB = require('../db');
 const router = express.Router();
 
 const barcodeController = require('../controllers/barcodeController');
@@ -12,6 +14,7 @@ const { catchErrors } = require('../handlers/errorHandlers');
 
 // specify the collection in our inventory database
 const LEGOS_COLLECTION = "legos";
+const ITEMS_COLLECTION = "items";
 
 let db;  // variable to hold our database
 
@@ -42,42 +45,139 @@ router.get('/reverse/:text', (req, res) => {
 });
 
 /* Barcode Lookup */
-router.get('/barcodes/:code', barcodeController.lookupBarCode);
+// router.get('/barcodes/:code', barcodeController.lookupBarCode);
 router.get('/testKey', bricksetController.testApiKey);
 router.get('/getSets', bricksetController.getSets);
 
+router.post('/countDocs', function(req, res, next) {
 
-// router.get('/test/:code', function(req, res) {
-//   const barcode = req.params.code;
-//   var wsdlUrl = 'http://www.searchupc.com/service/UPCSearch.asmx?wsdl';
-//
-//   soap.createClient(wsdlUrl, function(err, soapClient) {
-//     // we now have a soapClient - we also need to make sure there's no `err` here.
-//     if (err){
-//       return res.status(500).json(err);
-//     }
-//     soapClient.GetProduct({
-//       upc : barcode,
-//       accesstoken : '924646BB-A268-4007-9D87-2CE3084B47BC'
-//     }, function(err, result){
-//       if (err){
-//         return res.status(500).json(err);
-//       }
-//       // now we have the response, but the webservice returns it as a CSV string. Let's use the parser
-//       var responseAsCsv = result.GetProductResult;
-//       csv.parse(responseAsCsv, {columns : true}, function(err, parsedResponse){
-//         if (err) {
-//           return res.status(500).json(err);
-//         }
-//         // finally, we're ready to return this back to the client.
-//         return res.json(parsedResponse);
-//       });
-//     });
-//
-//   });
-// });
+  /*
+    Request to count the number of documents in a collection.
+
+    Requst: { collectionName: string }
+
+    Response:
+    {
+      success: boolean,
+      count: number,
+      error: string
+    }
+  */
+
+  var requestBody = req.body;
+  var database = new DB;
+  console.log(req.body);
+  console.log(requestBody.collectionName);
+
+  database.connect()
+  .then(
+    function(count) {
+      return database.countDocuments(requestBody.collectionName)
+    }
+  )
+  .then(
+    function(count) {
+      return {
+        "success": true,
+        "count": count,
+        "error": ""
+      };
+    },
+    function(err) {
+      console.log("Failed to count the documents: " + err);
+      return {
+        "success": false,
+        "count": 0,
+        "error": "Failed to count the documents " + err
+      };
+    }
+  )
+  .then(
+    function(resultObject) {
+      database.close();
+      res.json(resultObject);
+    }
+  )
+});
+
+router.post('/addDoc', function(req, res, next) {
+  let requestBody = req.body;
+  let database = new DB;
+
+  database.connect()
+  .then(
+    function() {
+      // returning will pass the promise returned by addDoc to
+      // the next .then in the chain
+      return database.addDocument(requestBody.collectionName, requestBody.document)
+    })
+    // No function is provided to handle the connection failing and so that
+		// error will flow through to the next .then
+  .then(
+    function(docs) {
+      return {
+        "success": true,
+        "error": ""
+      };
+    },
+    function(error) {
+      console.log('Failed to add document ' + error);
+      return {
+        "success": false,
+        "error": "Failed to add document " + error
+      };
+    })
+  .then(
+    function(resultObject) {
+      database.close();
+      res.json(resultObject);
+    }
+  )
+});
 
 // LEGOS API routes
+
+/* "/barcodes/:code"
+ * GET: perform barcode lookup using api.upcitemdb.com
+ */
+ router.get('/barcodes/:code', function(req, res) {
+   const code = req.params.code;
+
+   var opts = {
+     hostname: 'api.upcitemdb.com',
+     path: '/prod/trial/lookup',
+     method: 'POST',
+     headers: {
+       "Content-Type": "application/json",
+     }
+   }
+   var request = https.request(opts, function(response) {
+     console.log('statusCode: ', response.statusCode);
+    //  console.log('headers: ', response.headers);
+     let str = '';
+     response.on('data', function(d) {
+       str += d.toString();
+     });
+     response.on('end', function() {
+       const data = JSON.parse(str);
+       console.log(data);
+       res.json(data);
+     });
+   })
+   request.on('error', function(e) {
+     console.log('problem with request: ' + e.message);
+   })
+
+   const postData = JSON.stringify({
+     'upc': code
+   });
+
+   // console.log(postData);
+   request.write(postData);
+
+   // other requests
+   request.end();
+ });
 
 /*  "/api/sets"
  *  GET: finds all sets
