@@ -45,7 +45,13 @@ router.get('/reverse/:text', (req, res) => {
 });
 
 /* Barcode Lookup */
-// router.get('/barcodes/:code', barcodeController.lookupBarCode);
+
+/* "/barcodes/:code"
+ * GET: perform barcode lookup using api.upcitemdb.com
+ */
+router.get('/barcodes/:code', barcodeController.lookupBarCode);
+router.get('/downloadImage', barcodeController.downloadImage);
+
 router.get('/testKey', bricksetController.testApiKey);
 router.get('/getSets', bricksetController.getSets);
 
@@ -191,47 +197,7 @@ router.post('/getDocs', function(req, res, next) {
 
 // LEGOS API routes
 
-/* "/barcodes/:code"
- * GET: perform barcode lookup using api.upcitemdb.com
- */
- router.get('/barcodes/:code', function(req, res) {
-   const code = req.params.code;
 
-   var opts = {
-     hostname: 'api.upcitemdb.com',
-     path: '/prod/trial/lookup',
-     method: 'POST',
-     headers: {
-       "Content-Type": "application/json",
-     }
-   }
-   var request = https.request(opts, function(response) {
-     console.log('statusCode: ', response.statusCode);
-    //  console.log('headers: ', response.headers);
-     let str = '';
-     response.on('data', function(d) {
-       str += d.toString();
-     });
-     response.on('end', function() {
-       const data = JSON.parse(str);
-       console.log(data);
-       res.json(data);
-     });
-   })
-   request.on('error', function(e) {
-     console.log('problem with request: ' + e.message);
-   })
-
-   const postData = JSON.stringify({
-     'upc': code
-   });
-
-   // console.log(postData);
-   request.write(postData);
-
-   // other requests
-   request.end();
- });
 
 /*  "/api/sets"
  *  GET: finds all sets

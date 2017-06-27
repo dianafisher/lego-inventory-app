@@ -152,7 +152,7 @@ DB.prototype.addDocument = function(coll, document) {
 				collection.insert(document, {w: "majority"})
 				.then(
 					function(result) {
-						resolve();
+						resolve(document);
 					},
 					function(err) {
 						console.log("Insert failed: " + err.message);
