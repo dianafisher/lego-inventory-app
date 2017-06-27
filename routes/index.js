@@ -104,6 +104,7 @@ router.post('/addDoc', function(req, res, next) {
   let requestBody = req.body;
   let database = new DB;
 
+  console.log(requestBody);
   database.connect()
   .then(
     function() {

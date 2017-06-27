@@ -96,6 +96,10 @@ DB.prototype.countDocuments = function(coll) {
   });
 }
 
+DB.prototype.getDocument = function(coll) {
+
+}
+
 DB.prototype.addDocument = function(coll, document) {
 
 	// Return a promise that either resolves or is rejected with the error

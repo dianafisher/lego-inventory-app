@@ -6,7 +6,6 @@ const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
-const mongodb = require('mongodb');
 const assert = require('assert');
 
 const errorHandlers = require('./handlers/errorHandlers');
@@ -35,15 +34,15 @@ app.set('port', (process.env.PORT || 5000));
 app.use('/', index.router);
 
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+// app.use(function(err, req, res, next) {
+//   // set locals, only providing error in development
+//   res.locals.message = err.message;
+//   res.locals.error = req.app.get('env') === 'development' ? err : {};
+//
+//   // render the error page
+//   res.status(err.status || 500);
+//   res.render('error');
+// });
 
 // pass variables to our templates + all requests
 // app.use((req, res, next) => {
@@ -69,26 +68,9 @@ app.use(function(err, req, res, next) {
 // production error handler
 // app.use(errorHandlers.productionErrors);
 
-// MongoDB url
-const url = process.env.DATABASE; // if the database does not exist, mongodb will create it
-
-mongodb.MongoClient.connect(url, function(err, database) {
-  if (err) {
-    console.log(err);
-    process.exit(1);
-  }
-
-  index.setDB(database);
-  console.log("Database connection ready");
-
-  const server = app.listen(app.get('port'), function() {
-    console.log('Node app is running on port', app.get('port'));
-  });
-});
-
 // // start the app
-// app.listen(app.get('port'), function() {
-//   console.log('Node app is running on port', app.get('port'));
-// });
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
+});
 
 module.exports = app;
