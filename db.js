@@ -2,7 +2,8 @@
 This module provides helper methods to allow the application to interact with a MongoDB database.
 */
 
-var MongoClient = require('mongodb').MongoClient;
+const MongoClient = require('mongodb').MongoClient;
+const ObjectID = require('mongodb').ObjectID;
 
 function DB() {
   this.db = null;   // The MongoDB database connection
@@ -13,7 +14,7 @@ DB.prototype.connect = function() {
 
   // Trick to cope with the fact that "this" will refer to a different
   // object once in the promise's function.
-  var self = this;
+  let self = this;
 
   // This method returns a javascript promise (rather than having the caller
 	// supply a callback function).
@@ -68,7 +69,7 @@ DB.prototype.countDocuments = function(coll) {
   // Returns a promise which resolves to the number of documents in the
   // specified collection.
 
-  var self = this;
+  let self = this;
 
   return new Promise(function (resolve, reject) {
 
@@ -101,7 +102,7 @@ DB.prototype.getDocuments = function(coll, numberDocs) {
 	// "numberDocs" from the "coll" collection or is rejected with the
 	// error passed back from the database driver.
 
-  var self = this;
+  let self = this;
 
   return new Promise(function (resolve, reject) {
     self.db.collection(coll, {strict:true}, function(error, collection) {
@@ -140,7 +141,7 @@ DB.prototype.addDocument = function(coll, document) {
 	// Return a promise that either resolves or is rejected with the error
 	// received from the database.
 
-	var self=this;
+	let self = this;
 
 	return new Promise(function (resolve, reject) {
 		self.db.collection(coll, {strict:false}, function(error, collection){
@@ -162,6 +163,30 @@ DB.prototype.addDocument = function(coll, document) {
 			}
 		});
 	});
+}
+
+DB.prototype.removeDocument = function(coll, docID) {
+  let self = this;
+  
+  return new Promise(function (resolve, reject) {
+    self.db.collection(coll, {strict:false}, function(error, collection) {
+      if (error) {
+        console.log("Could not access collection: " + error.message);
+        reject(error.message);
+      } else {
+        collection.deleteOne( {_id: new ObjectID(docID)} )
+        .then(
+          function(result) {
+            resolve();
+          },
+          function(err) {
+            console.log("Deletion failed: " + err.message);
+            reject(err.message);
+          }
+        )
+      }
+    })
+  });
 }
 
 // Make the module available for use in other files

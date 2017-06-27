@@ -142,6 +142,38 @@ router.post('/addDoc', function(req, res, next) {
   )
 });
 
+router.delete('/api/items/:id', function(req, res, next) {
+  //req.params.id
+  let database = new DB;
+  database.connect()
+  .then(
+    function() {
+      return database.removeDocument('items', req.params.id);
+    }
+  )
+  .then(
+    function() {
+      return {
+        "success": true,
+        "error": ""
+      };
+    },
+    function(error) {
+      console.log("Failed to delete item: " + error);
+      return {
+        "success": false,
+        "error": error.message
+      };
+    }
+  )
+  .then(
+    function(resultObject) {
+      database.close();
+      res.json(resultObject);
+    }
+  )
+});
+
 router.post('/getDocs', function(req, res, next) {
   /* Request from client to read a sample of the documents from a collection;
     the request should be of the form:
