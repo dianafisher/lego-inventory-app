@@ -96,8 +96,43 @@ DB.prototype.countDocuments = function(coll) {
   });
 }
 
-DB.prototype.getDocument = function(coll) {
+DB.prototype.getDocuments = function(coll, numberDocs) {
+  // Returns a promise which is either resolved with an array of
+	// "numberDocs" from the "coll" collection or is rejected with the
+	// error passed back from the database driver.
 
+  var self = this;
+
+  return new Promise(function (resolve, reject) {
+    self.db.collection(coll, {strict:true}, function(error, collection) {
+      if (error) {
+        console.log("Could not access collection: " + error.message);
+        reject(error.message);
+      } else {
+        // Create a cursor from the aggregation request
+
+        let cursor = collection.aggregate([
+          {
+						$sample: {size: parseInt(numberDocs)}
+					}],
+					{ cursor: { batchSize: 10 } }
+        )
+
+        // Iterate over the cursor to access each document in the sample
+				// result set. Could use cursor.each() if we wanted to work with
+				// individual documents here.
+
+        cursor.toArray(function(error, docArray) {
+          if (error) {
+            console.log("Error reading from cursor: " + error.message);
+            reject(error.message);
+          } else {
+            resolve(docArray);
+          }
+        })
+      }
+    })
+  });
 }
 
 DB.prototype.addDocument = function(coll, document) {
