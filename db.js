@@ -190,5 +190,27 @@ DB.prototype.removeDocument = function(coll, docID) {
   });
 }
 
+DB.prototype.findDocument = function(coll, query) {
+  let self = this;
+
+  return new Promise(function (resolve, reject) {
+    self.db.collection(coll, {strict: true}, function(error, collection) {
+      if (error) {
+        console.log("Could not access collection: " + error.message);
+        reject(error.message);
+      } else {
+        collection.find(query).toArray(function(error, docArray) {
+          if (error) {
+            console.log("Error reading fron cursor: " + error.message);
+          	reject(error.message);
+          } else {
+            resolve(docArray);
+          }
+        })
+      }
+    })
+  });
+}
+
 // Make the module available for use in other files
 module.exports = DB;

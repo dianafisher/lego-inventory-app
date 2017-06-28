@@ -49,8 +49,9 @@ router.get('/reverse/:text', (req, res) => {
 /* "/barcodes/:code"
  * GET: perform barcode lookup using api.upcitemdb.com
  */
-// router.get('/barcodes/:code', barcodeController.lookupBarCode);
-router.get('/barcodes/:code', barcodeController.lookupCode);
+
+router.get('/barcodes/:code', barcodeController.lookupBarCode);
+router.get('/find/:code', barcodeController.findDocumentWithCode);
 router.get('/downloadImage', barcodeController.downloadImage);
 
 router.get('/testKey', bricksetController.testApiKey);
