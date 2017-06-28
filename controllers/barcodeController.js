@@ -85,24 +85,34 @@ exports.lookupBarCode = (req, res) => {
   request.end();
 };
 
-exports.lookupCode = (req, res) => {
+exports.lookupCode = async (req, res) => {
   const code = req.params.code;
 
-  getProductFromCode(code)
-  .then(saveToDatabase)
-  .then(formatResult)
-  .then(
-    function(resultObject) {
-      console.log(resultObject);
-      res.json(resultObject);
-    }
-  )
-  .catch(
-    function(error) {
-      console.log('Error: ' + error);
-      res.status(500).json(error);
-    }
-  )
+  // getProductFromCode(code)
+  // .then(saveToDatabase)
+  // .then(formatResult)
+  // .then(
+  //   function(resultObject) {
+  //     console.log(resultObject);
+  //     res.json(resultObject);
+  //   }
+  // )
+  // .catch(
+  //   function(error) {
+  //     console.log('Error: ' + error);
+  //     res.status(500).json(error);
+  //   }
+  // )
+
+  try {
+    const doc = await getProductFromCode(code);
+    const result = await saveToDatabase(doc);
+    res.json(formatResult(result));
+  } catch(error) {
+    console.log('Error: ' + error);
+    res.status(500).json(error);
+  }
+
 };
 
 function formatResult(data, error) {
