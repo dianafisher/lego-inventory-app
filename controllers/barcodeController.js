@@ -4,11 +4,13 @@ const download = require('image-downloader');
 const DB = require('../db');
 
 /* "/barcodes/:code"
- * GET: perform barcode lookup using api.upcitemdb.com
+ * PUT: perform barcode lookup using api.upcitemdb.com
  */
 
 exports.lookupBarCode = async (req, res) => {
-  const code = req.params.code;
+  console.log(req.body);
+  const collection = req.body.collection;
+  const code = req.body.code;
 
   // getProductFromCode(code)
   // .then(saveToDatabase)
@@ -28,8 +30,9 @@ exports.lookupBarCode = async (req, res) => {
 
   try {
     const doc = await getProductFromCode(code);
-    const result = await saveToDatabase(doc);
-    res.json(formatResult(result));
+    const result = await saveToDatabase(collection, doc);
+    // Return status 201 to indicate the document was created
+    res.status(201).json(formatResult(result));
   } catch(error) {
     console.log('Error: ' + error);
     res.status(500).json(error);
@@ -45,22 +48,25 @@ function formatResult(data, error) {
       "error": ""
     };
   } else {
-    console.log('Failed to lookup code ' + error);
+    console.log('Error ' + error);
     return {
       "success": false,
       "data": null,
-      "error": "Failed to lookup code " + error
+      "error": "Error " + error
     };
   }
 }
 
-function saveToDatabase(doc) {
+/*
+  Saves the provided document to the database.
+*/
+function saveToDatabase(collection, doc) {
   return new Promise(function(resolve, reject){
     let database = new DB;
     database.connect()
     .then(
       function(){
-        return database.addDocument('items', doc);
+        return database.addDocument(collection, doc);
       }
     )
     .then(
@@ -79,6 +85,9 @@ function saveToDatabase(doc) {
   });
 }
 
+/*
+ Calls the upcitemdb.com API to find a product with the provided barcode.
+ */
 function getProductFromCode(code) {
   return new Promise(function(resolve, reject){
     let opts = {
@@ -89,13 +98,16 @@ function getProductFromCode(code) {
         "Content-Type": "application/json",
       }
     }
+
     let str = '';
 
     const request = https.request(opts, function(response){
       console.log('statusCode: ', response.statusCode);
+
       response.on('data', function(d) {
         str += d.toString();
       });
+
       response.on('end', function() {
         const data = JSON.parse(str);
         if (response.statusCode !== 200) {
@@ -125,11 +137,14 @@ function getProductFromCode(code) {
   });
 }
 
+/* "/barcodes/:code"
+ * GET: perform barcode lookup using api.upcitemdb.com
+ */
 exports.findDocumentWithCode = async (req, res) => {
   const code = req.params.code;
 
   try {
-    const docs = await findInDatabase(code);
+    const docs = await findCodeInDatabase(collection, code);
     res.json(formatResult(docs));
   } catch(error) {
     console.log('Error: ' + error);
@@ -137,7 +152,10 @@ exports.findDocumentWithCode = async (req, res) => {
   }
 }
 
-function findInDatabase(code) {
+/*
+ Searches the database for a document with the provided upc barcode
+ */
+function findCodeInDatabase(collection, code) {
   return new Promise(function(resolve, reject) {
     let database = new DB;
     const query = {
@@ -151,7 +169,7 @@ function findInDatabase(code) {
     database.connect()
     .then(
       function() {
-        return database.findDocument('items', query);
+        return database.findDocument(collection, query);
       }
     )
     .then(
