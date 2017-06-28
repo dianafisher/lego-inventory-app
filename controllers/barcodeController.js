@@ -10,11 +10,11 @@ const DB = require('../db');
 exports.lookupBarCode = async (req, res) => {
   console.log(req.body);
   const collection = req.body.collection;
-  const code = req.body.code;
+  const upc = req.body.upc;
 
   try {
     // 1. Check if we already have this product in our database
-    const product = await findCodeInDatabase(collection, code);
+    const product = await findUPCInDatabase(collection, upc);
     // 2. If we do have it in our database, return it.
     console.log(product);
     if (product.length) {
@@ -24,7 +24,7 @@ exports.lookupBarCode = async (req, res) => {
     } else {
       console.log('🤷');
       // 3. Otherwise, call the upcitemdb API to find the product.
-      const doc = await getProductFromCode(code);
+      const doc = await getProductByUPC(upc);
       const result = await saveToDatabase(collection, doc);
       // Return status 201 to indicate the document was created
       res.status(201).json(formatResult(result));
@@ -85,7 +85,7 @@ function saveToDatabase(collection, doc) {
 /*
  Calls the upcitemdb.com API to find a product with the provided barcode.
  */
-function getProductFromCode(code) {
+function getProductByUPC(upc) {
   return new Promise(function(resolve, reject){
     let opts = {
       hostname: 'api.upcitemdb.com',
@@ -108,11 +108,14 @@ function getProductFromCode(code) {
       response.on('end', function() {
         const data = JSON.parse(str);
         if (response.statusCode !== 200) {
-          // something is wrong
-          let message = data.message + ' 💀'
+          // if the upcitemdb api returns a status code of
+          // something other than 200, then something is wrong
+          let message = data.message + ' ☠️'
           reject(message);
         }
-        resolve(data);
+        const reduced = reduceDataFromUPCResponse(data);
+        console.log(reduced);
+        resolve(reduced);
       });
 
     });
@@ -123,7 +126,7 @@ function getProductFromCode(code) {
     });
 
     const postData = JSON.stringify({
-      'upc': code
+      'upc': upc
     });
 
     // console.log(postData);
@@ -134,16 +137,46 @@ function getProductFromCode(code) {
   });
 }
 
+function reduceDataFromUPCResponse(data) {
+  console.log(data);
+  const count = data.total;
+  console.log(`There are ${count} items in data.`);
+  if (count) {
+    let document = {};
+    // for now, we will just focus on the first item in the list
+    const firstItem = data.items[0];
+    document.upc = firstItem.upc;
+    document.title = firstItem.title;
+    document.description = firstItem.description;
+    document.ean = firstItem.ean;
+    document.brand = firstItem.brand;
+    document.model = firstItem.model;
+    document.color = firstItem.color;
+    document.size = firstItem.size;
+    document.dimension = firstItem.dimension;
+    // if there are images, just grab the first one
+    if (firstItem.images) {
+      document.imageURL = firstItem.images[0];
+    }
+    // Amazon asin
+    document.asin = firstItem.asin;
+    document.elid = firstItem.elid;
+
+    return document;
+  }
+  return null;
+}
+
 /* "/barcodes/:code"
  * GET: perform barcode lookup using api.upcitemdb.com
  */
 exports.findDocumentWithCode = async (req, res) => {
   console.log(req.query);
   const collection = req.query.collection;
-  const code = req.query.code;
+  const upc = req.query.upc;
 
   try {
-    const docs = await findCodeInDatabase(collection, code);
+    const docs = await findUPCInDatabase(collection, upc);
     res.json(formatResult(docs));
   } catch(error) {
     console.log('Error: ' + error);
@@ -154,15 +187,19 @@ exports.findDocumentWithCode = async (req, res) => {
 /*
  Searches the database for a document with the provided upc barcode
  */
-function findCodeInDatabase(collection, code) {
+function findUPCInDatabase(collection, upc) {
   return new Promise(function(resolve, reject) {
     let database = new DB;
+    // const query = {
+    //   "items": {
+    //     $elemMatch: {
+    //       "upc": upc
+    //     }
+    //   }
+    // };
+
     const query = {
-      "items": {
-        $elemMatch: {
-          "upc": code
-        }
-      }
+      "upc": upc
     };
 
     database.connect()
@@ -186,7 +223,6 @@ function findCodeInDatabase(collection, code) {
     )
   })
 }
-
 
 exports.downloadImage = (req, res) => {
   // Download to a directory and save with the original filename
