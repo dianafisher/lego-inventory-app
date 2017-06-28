@@ -47,12 +47,13 @@ router.get('/reverse/:text', (req, res) => {
 /* Barcode Lookup */
 
 /* "/barcodes"
+ *
  * PUT: perform barcode lookup using api.upcitemdb.com
+ * GET: get document with upc code
  */
 
 router.put('/barcodes', barcodeController.lookupBarCode);
-
-router.get('/barcodes/:code', barcodeController.findDocumentWithCode);
+router.get('/barcodes', barcodeController.findDocumentWithCode);
 
 router.get('/downloadImage', barcodeController.downloadImage);
 

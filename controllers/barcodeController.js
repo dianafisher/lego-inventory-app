@@ -29,10 +29,23 @@ exports.lookupBarCode = async (req, res) => {
   // )
 
   try {
-    const doc = await getProductFromCode(code);
-    const result = await saveToDatabase(collection, doc);
-    // Return status 201 to indicate the document was created
-    res.status(201).json(formatResult(result));
+    // 1. Check if we already have this product in our database
+    const product = await findCodeInDatabase(collection, code);
+    // 2. If we do have it in our database, return it.
+    console.log(product);
+    if (product.length) {
+      console.log('found in database!');
+      const result = product[0];
+      res.status(200).json(formatResult(result));
+    } else {
+      console.log('🤷');
+      // 3. Otherwise, call the upcitemdb API to find the product.
+      const doc = await getProductFromCode(code);
+      const result = await saveToDatabase(collection, doc);
+      // Return status 201 to indicate the document was created
+      res.status(201).json(formatResult(result));
+    }
+
   } catch(error) {
     console.log('Error: ' + error);
     res.status(500).json(error);
@@ -141,7 +154,9 @@ function getProductFromCode(code) {
  * GET: perform barcode lookup using api.upcitemdb.com
  */
 exports.findDocumentWithCode = async (req, res) => {
-  const code = req.params.code;
+  console.log(req.query);
+  const collection = req.query.collection;
+  const code = req.query.code;
 
   try {
     const docs = await findCodeInDatabase(collection, code);
