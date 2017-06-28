@@ -12,22 +12,6 @@ exports.lookupBarCode = async (req, res) => {
   const collection = req.body.collection;
   const code = req.body.code;
 
-  // getProductFromCode(code)
-  // .then(saveToDatabase)
-  // .then(formatResult)
-  // .then(
-  //   function(resultObject) {
-  //     console.log(resultObject);
-  //     res.json(resultObject);
-  //   }
-  // )
-  // .catch(
-  //   function(error) {
-  //     console.log('Error: ' + error);
-  //     res.status(500).json(error);
-  //   }
-  // )
-
   try {
     // 1. Check if we already have this product in our database
     const product = await findCodeInDatabase(collection, code);
