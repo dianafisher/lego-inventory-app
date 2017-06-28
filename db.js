@@ -1,5 +1,6 @@
 /*
-This module provides helper methods to allow the application to interact with a MongoDB database.
+This module provides helper methods to allow the application
+to interact with a MongoDB database.
 */
 
 const MongoClient = require('mongodb').MongoClient;
@@ -167,7 +168,7 @@ DB.prototype.addDocument = function(coll, document) {
 
 DB.prototype.removeDocument = function(coll, docID) {
   let self = this;
-  
+
   return new Promise(function (resolve, reject) {
     self.db.collection(coll, {strict:false}, function(error, collection) {
       if (error) {
