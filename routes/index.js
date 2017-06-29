@@ -8,7 +8,7 @@ const router = express.Router();
 
 const barcodeController = require('../controllers/barcodeController');
 const bricksetController = require('../controllers/bricksetController');
-const sampleController = require('../controllers/sampleController');
+// const sampleController = require('../controllers/sampleController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
