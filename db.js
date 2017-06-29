@@ -27,7 +27,7 @@ DB.prototype.connect = function() {
     } else {
       var _this = self;
 
-      MongoClient.connect(process.env.DATABASE)
+      MongoClient.connect(process.env.MONGODB_URI)
       .then(
         function(database){
           _this.db = database;
