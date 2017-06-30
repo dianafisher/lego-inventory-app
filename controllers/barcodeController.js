@@ -155,8 +155,10 @@ function reduceDataFromUPCResponse(data) {
     document.size = firstItem.size;
     document.dimension = firstItem.dimension;
     // if there are images, just grab the first one
-    if (firstItem.images) {
+    if (firstItem.images.length) {
       document.imageURL = firstItem.images[0];
+    } else {
+      document.imageURL = '';
     }
     // Amazon asin
     document.asin = firstItem.asin;

@@ -8,6 +8,7 @@ const router = express.Router();
 
 const barcodeController = require('../controllers/barcodeController');
 const bricksetController = require('../controllers/bricksetController');
+const awsController = require('../controllers/awsController');
 // const sampleController = require('../controllers/sampleController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
@@ -44,6 +45,22 @@ router.get('/reverse/:text', (req, res) => {
 
 });
 
+/*
+ * Respond to GET requests to /account.
+ * Upon request, render the 'account.html' web page in views/ directory.
+ */
+router.get('/account', (req, res) => res.render('account'));
+
+/*
+ * Respond to POST requests to /submit_form.
+ * This function needs to be completed to handle the information in
+ * a way that suits your application.
+ */
+router.post('/save-details', (req, res) => {
+  // TODO: Read POSTed form data and do something useful
+});
+
+
 /* Barcode Lookup */
 
 /* "/barcodes"
@@ -59,6 +76,8 @@ router.get('/downloadImage', barcodeController.downloadImage);
 
 router.get('/testKey', bricksetController.testApiKey);
 router.get('/getSets', bricksetController.getSets);
+
+router.get('/sign-s3', awsController.getSignedRequest);
 
 router.post('/countDocs', function(req, res, next) {
 
