@@ -19,7 +19,7 @@ exports.lookupBarCode = async (req, res) => {
     const product = await findUPCInDatabase(collection, upc);
     // 2. If we do have it in our database, return it.
     console.log(product);
-    await downloadImage('http://www.fye.com/amgcover/other/full/ae/c3/aec3947898.jpg');
+    await downloadImage('https://i5.walmartimages.com/asr/ea171e00-5f06-44f3-8836-4d1ed9fb8a02_1.1fa613f5c05415a92718cf038928eea0.jpeg?odnHeight=450&odnWidth=450&odnBg=ffffff');
     if (product.length) {
       console.log('found in database!');
       const result = product[0];
@@ -173,10 +173,11 @@ function reduceDataFromUPCResponse(data) {
 }
 
 async function downloadImage(url) {
-  let name = 'test3.jpg';
+  let fileName = 'test6.jpg';
+  let contentType = '';
 
   try {
-    
+
     request.get({url: url, encoding: null}, function(err, res) {
       if (err) {
         console.log(error);
@@ -184,11 +185,12 @@ async function downloadImage(url) {
         console.log('status code: ', res.statusCode);
         console.log(res.headers);
         console.log(typeof res.body);
-
+        console.log(res.url);
+        contentType = res.headers['content-type'];
         const s3 = new aws.S3();
         s3.putObject({
           Bucket: S3_BUCKET,
-          Key: name,
+          Key: fileName,
           Body: res.body,
           ContentType: res.headers['content-type'],
           ACL: 'public-read'
@@ -197,6 +199,7 @@ async function downloadImage(url) {
             console.log(err);
           } else {
             console.log(data);
+            console.log(`https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`);
           }
 
         })
