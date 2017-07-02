@@ -1,6 +1,8 @@
 const https = require('https');
-const download = require('image-downloader');
+const aws = require('aws-sdk');
+const request = require('request');
 
+const S3_BUCKET = process.env.S3_BUCKET_NAME;
 const DB = require('../db');
 
 /* "/barcodes/:code"
@@ -17,6 +19,7 @@ exports.lookupBarCode = async (req, res) => {
     const product = await findUPCInDatabase(collection, upc);
     // 2. If we do have it in our database, return it.
     console.log(product);
+    await downloadImage('http://www.fye.com/amgcover/other/full/ae/c3/aec3947898.jpg');
     if (product.length) {
       console.log('found in database!');
       const result = product[0];
@@ -169,6 +172,70 @@ function reduceDataFromUPCResponse(data) {
   return null;
 }
 
+async function downloadImage(url) {
+  let name = 'test3.jpg';
+
+  try {
+    
+    request.get({url: url, encoding: null}, function(err, res) {
+      if (err) {
+        console.log(error);
+      } else {
+        console.log('status code: ', res.statusCode);
+        console.log(res.headers);
+        console.log(typeof res.body);
+
+        const s3 = new aws.S3();
+        s3.putObject({
+          Bucket: S3_BUCKET,
+          Key: name,
+          Body: res.body,
+          ContentType: res.headers['content-type'],
+          ACL: 'public-read'
+        }, function(err, data){
+          if (err) {
+            console.log(err);
+          } else {
+            console.log(data);
+          }
+
+        })
+      }
+    });
+
+  } catch(err) {
+    console.log(err);
+  }
+}
+
+function getSignedAWSRequest(fileName, fileType) {
+  const s3 = new aws.S3();
+
+  const s3Params = {
+    Bucket: S3_BUCKET,
+    Key: fileName,
+    Expires: 60,
+    ContentType: fileType,
+    ACL: 'public-read'
+  };
+
+  return new Promise(function(resolve, reject){
+    s3.getSignedUrl('putObject', s3Params, (err, data) => {
+      if(err){
+        console.log(err);
+        reject(err);
+      }
+      const returnData = {
+        signedRequest: data,
+        url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
+      };
+      console.log(JSON.stringify(returnData));
+      resolve(returnData);
+    });
+  });
+}
+
+
 /* "/barcodes/:code"
  * GET: perform barcode lookup using api.upcitemdb.com
  */
@@ -224,49 +291,4 @@ function findUPCInDatabase(collection, upc) {
       }
     )
   })
-}
-
-exports.downloadImage = (req, res) => {
-  // Download to a directory and save with the original filename
-  const options = {
-    url: 'http://c.shld.net/rpx/i/s/i/spin/10138019/prod_1588765312',
-    dest: `./public/images/photo.jpg`                  // Save to /path/to/dest/image.jpg
-  }
-
-  download.image(options)
-    .then(({ filename, image }) => {
-      console.log('File saved to', filename)
-      resultObject = {
-        "success": true,
-        "error": {}
-      };
-      res.json(resultObject);
-    }).catch((err) => {
-      throw err
-    })
-
-  // // Download to a directory and save with an another filename
-  // options = {
-  //   url: 'http://someurl.com/image2.jpg',
-  //   dest: '/path/to/dest/photo.jpg'        // Save to /path/to/dest/photo.jpg
-  // }
-  //
-  // download.image(options)
-  //   .then(({ filename, image }) => {
-  //     console.log('File saved to', filename)
-  //   }).catch((err) => {
-  //     throw err
-  //   })
-};
-
-exports.download = async (req, res, next) => {
-  const options = {
-    url: 'http://someurl.com/image.jpg',
-    dest: '/path/to/dest'
-  };
-
-  const { filename, image } = await download.image(options)
-  console.log(filename) // => /path/to/dest/image.jpg
-  next();
-
 }

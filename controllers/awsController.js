@@ -4,6 +4,7 @@ const S3_BUCKET = process.env.S3_BUCKET_NAME;
 
 exports.getSignedRequest = (req, res) => {
   const s3 = new aws.S3();
+  console.log('request', req.query);
   const fileName = req.query['file-name'];
   const fileType = req.query['file-type'];
   const s3Params = {
@@ -24,7 +25,7 @@ exports.getSignedRequest = (req, res) => {
       url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
     };
     console.log(JSON.stringify(returnData));
-    
+
     res.write(JSON.stringify(returnData));
     res.end();
   });

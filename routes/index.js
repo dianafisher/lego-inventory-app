@@ -72,7 +72,7 @@ router.post('/save-details', (req, res) => {
 router.put('/barcodes', barcodeController.lookupBarCode);
 router.get('/barcodes', barcodeController.findDocumentWithCode);
 
-router.get('/downloadImage', barcodeController.downloadImage);
+// router.get('/downloadImage', barcodeController.downloadImage);
 
 router.get('/testKey', bricksetController.testApiKey);
 router.get('/getSets', bricksetController.getSets);
