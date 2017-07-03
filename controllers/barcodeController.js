@@ -1,6 +1,7 @@
 const https = require('https');
 const aws = require('aws-sdk');
 const request = require('request');
+const uuid = require('uuid');
 
 const S3_BUCKET = process.env.S3_BUCKET_NAME;
 const DB = require('../db');
@@ -19,7 +20,6 @@ exports.lookupBarCode = async (req, res) => {
     const product = await findUPCInDatabase(collection, upc);
     // 2. If we do have it in our database, return it.
     console.log(product);
-    await downloadImage('https://i5.walmartimages.com/asr/ea171e00-5f06-44f3-8836-4d1ed9fb8a02_1.1fa613f5c05415a92718cf038928eea0.jpeg?odnHeight=450&odnWidth=450&odnBg=ffffff');
     if (product.length) {
       console.log('found in database!');
       const result = product[0];
@@ -29,6 +29,10 @@ exports.lookupBarCode = async (req, res) => {
       // 3. Otherwise, call the upcitemdb API to find the product.
       const doc = await getProductByUPC(upc);
       const result = await saveToDatabase(collection, doc);
+      console.log('result', result);
+
+      // await uploadImageToS3('https://i5.walmartimages.com/asr/ea171e00-5f06-44f3-8836-4d1ed9fb8a02_1.1fa613f5c05415a92718cf038928eea0.jpeg?odnHeight=450&odnWidth=450&odnBg=ffffff');
+
       // Return status 201 to indicate the document was created
       res.status(201).json(formatResult(result));
     }
@@ -118,6 +122,7 @@ function getProductByUPC(upc) {
         }
         const reduced = reduceDataFromUPCResponse(data);
         console.log(reduced);
+        // upload the product image to S3
         resolve(reduced);
       });
 
@@ -157,9 +162,10 @@ function reduceDataFromUPCResponse(data) {
     document.color = firstItem.color;
     document.size = firstItem.size;
     document.dimension = firstItem.dimension;
-    // if there are images, just grab the first one
+
+    // items can have multiple image urls, process them and store them
     if (firstItem.images.length) {
-      document.imageURL = firstItem.images[0];
+      handleItemImageURLs(document, firstItem.images);
     } else {
       document.imageURL = '';
     }
@@ -172,9 +178,24 @@ function reduceDataFromUPCResponse(data) {
   return null;
 }
 
-async function downloadImage(url) {
-  let fileName = 'test6.jpg';
+function handleItemImageURLs(document, urls) {
+
+  urls.forEach((url, index) => {
+    console.log(url);
+    // check if the url starts with '//', append http if it does.
+    if (url.startsWith('//')) {
+      // append http
+      urls[index] = 'http:' + url;
+    }
+  });
+
+  document.images = urls;
+}
+
+async function uploadImageToS3(url) {
+
   let contentType = '';
+  let fileName = '';
 
   try {
 
@@ -186,19 +207,30 @@ async function downloadImage(url) {
         console.log(res.headers);
         console.log(typeof res.body);
         console.log(res.url);
+
+        let extension = 'jpg';
+        // create a unique filename using uuid
+        if (contentType === 'image/png') {
+          extension = 'png';
+        }
+
         contentType = res.headers['content-type'];
+        fileName = `${uuid.v4()}.${extension}`;
+
         const s3 = new aws.S3();
+
         s3.putObject({
           Bucket: S3_BUCKET,
           Key: fileName,
           Body: res.body,
-          ContentType: res.headers['content-type'],
+          ContentType: contentType,
           ACL: 'public-read'
         }, function(err, data){
           if (err) {
             console.log(err);
           } else {
             console.log(data);
+
             console.log(`https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`);
           }
 
