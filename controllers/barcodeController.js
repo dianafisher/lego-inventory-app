@@ -245,58 +245,6 @@ function uploadToS3(url) {
   });
 }
 
-async function uploadImageToS3(url) {
-
-  let contentType = '';
-  let fileName = '';
-
-  try {
-
-    request.get({url: url, encoding: null}, function(err, res) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('status code: ', res.statusCode);
-        console.log(res.headers);
-        console.log(typeof res.body);
-        console.log(res.url);
-
-        let extension = 'jpg';
-        // create a unique filename using uuid
-        if (contentType === 'image/png') {
-          extension = 'png';
-        }
-
-        contentType = res.headers['content-type'];
-        fileName = `${uuid.v4()}.${extension}`;
-
-        const s3 = new aws.S3();
-
-        s3.putObject({
-          Bucket: S3_BUCKET,
-          Key: fileName,
-          Body: res.body,
-          ContentType: contentType,
-          ACL: 'public-read'
-        }, function(err, data){
-          if (err) {
-            console.log(err);
-          } else {
-            console.log(data);
-            const awsURL = `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`;
-            console.log(awsURL);
-            return awsURL;
-          }
-
-        })
-      }
-    });
-
-  } catch(err) {
-    console.log(err);
-  }
-}
-
 function getSignedAWSRequest(fileName, fileType) {
   const s3 = new aws.S3();
 
