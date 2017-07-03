@@ -28,10 +28,14 @@ exports.lookupBarCode = async (req, res) => {
       console.log('🤷');
       // 3. Otherwise, call the upcitemdb API to find the product.
       const doc = await getProductByUPC(upc);
-      const result = await saveToDatabase(collection, doc);
-      console.log('result', result);
+      console.log('document', doc);
+      if (doc.images.length) {
+        const imageURL = await uploadToS3(doc.images[0]);
+        console.log('imageURL', imageURL);
+        doc.productImage = imageURL;
+      }
 
-      // await uploadImageToS3('https://i5.walmartimages.com/asr/ea171e00-5f06-44f3-8836-4d1ed9fb8a02_1.1fa613f5c05415a92718cf038928eea0.jpeg?odnHeight=450&odnWidth=450&odnBg=ffffff');
+      const result = await saveToDatabase(collection, doc);
 
       // Return status 201 to indicate the document was created
       res.status(201).json(formatResult(result));
@@ -63,6 +67,7 @@ function formatResult(data, error) {
 
 /*
   Saves the provided document to the database.
+  Returns a promise
 */
 function saveToDatabase(collection, doc) {
   return new Promise(function(resolve, reject){
@@ -170,8 +175,8 @@ function reduceDataFromUPCResponse(data) {
       document.imageURL = '';
     }
     // Amazon asin
-    document.asin = firstItem.asin;
-    document.elid = firstItem.elid;
+    document.asin = firstItem.asin || '';
+    document.elid = firstItem.elid || '';
 
     return document;
   }
@@ -192,6 +197,54 @@ function handleItemImageURLs(document, urls) {
   document.images = urls;
 }
 
+function uploadToS3(url) {
+  return new Promise(function(resolve, reject){
+    let contentType = '';
+    let fileName = '';
+
+    request.get({url: url, encoding: null}, function(err, res) {
+      if (err) {
+        console.log(err);
+        reject(err);
+      } else {
+        console.log('status code: ', res.statusCode);
+        console.log(res.headers);
+        console.log(typeof res.body);
+        console.log(res.url);
+
+        let extension = 'jpg';
+        // create a unique filename using uuid
+        if (contentType === 'image/png') {
+          extension = 'png';
+        }
+
+        contentType = res.headers['content-type'];
+        fileName = `${uuid.v4()}.${extension}`;
+
+        const s3 = new aws.S3();
+
+        s3.putObject({
+          Bucket: S3_BUCKET,
+          Key: fileName,
+          Body: res.body,
+          ContentType: contentType,
+          ACL: 'public-read'
+        }, function(error, data){
+          if (error) {
+            console.log(error);
+            reject(error);
+          } else {
+            console.log(data);
+            const awsURL = `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`;
+            console.log(awsURL);
+            resolve(awsURL);
+          }
+        });
+      }
+    });
+  });
+}
+
 async function uploadImageToS3(url) {
 
   let contentType = '';
@@ -201,7 +254,7 @@ async function uploadImageToS3(url) {
 
     request.get({url: url, encoding: null}, function(err, res) {
       if (err) {
-        console.log(error);
+        console.log(err);
       } else {
         console.log('status code: ', res.statusCode);
         console.log(res.headers);
@@ -230,8 +283,9 @@ async function uploadImageToS3(url) {
             console.log(err);
           } else {
             console.log(data);
-
-            console.log(`https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`);
+            const awsURL = `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`;
+            console.log(awsURL);
+            return awsURL;
           }
 
         })
