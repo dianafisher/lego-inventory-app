@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const assert = require('assert');
+const cors = require('cors');
 
 const errorHandlers = require('./handlers/errorHandlers');
 const index = require('./routes/index');
@@ -30,8 +31,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // set up the port
 app.set('port', (process.env.PORT || 5000));
 
+// To prevent errors from Cross Origin Resource Sharing, set headers to allow CORS
+app.use(cors());
+app.options('*', cors());
+
 // Define a single route
 app.use('/', index.router);
+
 
 // error handler
 // app.use(function(err, req, res, next) {

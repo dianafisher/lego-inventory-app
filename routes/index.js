@@ -25,6 +25,11 @@ function handleError(res, reason, message, code) {
   res.status(code || 500).json({"error": message});
 }
 
+router.get('/products/:id', function (req, res, next) {
+  res.json({msg: 'This is CORS-enabled for all origins!'})
+})
+
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   // res.render('index', { title: 'Lego Inventory' });
@@ -218,7 +223,7 @@ router.post('/getDocs', function(req, res, next) {
 
   let requestBody = req.body;
   let database = new DB;
-
+  console.log('requestBody', requestBody);
   database.connect()
   .then(
     function() {
