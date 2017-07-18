@@ -203,6 +203,41 @@ router.delete('/api/items/:id', function(req, res, next) {
   )
 });
 
+router.get('/api/items', function(req, res, next) {
+  let requestBody = req.body;
+  let database = new DB;
+  database.connect()
+  .then(
+    function() {
+      return database.getDocuments(ITEMS_COLLECTION, 20)
+    }
+  ) // No function is provided to handle the connection failing and so that
+      // error will flow through to the next .then
+  .then(
+    function(docs) {
+      return {
+        "success": true,
+        "documents": docs,
+        "error": ""
+      };
+    },
+    function(error) {
+      console.log("Failed to retrieve docs: " + error);
+      return {
+        "success": false,
+        "documents": null,
+        "error": error.message
+      };
+    }
+  )
+  .then(
+    function(resultObject) {
+      database.close();
+      res.json(resultObject);
+    }
+  )
+});
+
 router.post('/getDocs', function(req, res, next) {
   /* Request from client to read a sample of the documents from a collection;
     the request should be of the form:
