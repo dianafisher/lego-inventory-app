@@ -17,6 +17,8 @@ const { catchErrors } = require('../handlers/errorHandlers');
 const LEGOS_COLLECTION = "legos";
 const ITEMS_COLLECTION = "items";
 
+const ITEMS_PER_PAGE = 10;
+
 let db;  // variable to hold our database
 
 // Generic error handler used by all endpoints
@@ -83,6 +85,8 @@ router.get('/testKey', bricksetController.testApiKey);
 router.get('/getSets', bricksetController.getSets);
 
 router.get('/sign-s3', awsController.getSignedRequest);
+
+router.post('/image', awsController.uploadImage);
 
 router.post('/countDocs', function(req, res, next) {
 
@@ -204,12 +208,13 @@ router.delete('/api/items/:id', function(req, res, next) {
 });
 
 router.get('/api/items', function(req, res, next) {
-  let requestBody = req.body;
+  let page = req.query.page ? parseInt(req.query.page) : 0;
+  console.log('page', page);
   let database = new DB;
   database.connect()
   .then(
     function() {
-      return database.getDocuments(ITEMS_COLLECTION, 20)
+      return database.getDocuments(ITEMS_COLLECTION, ITEMS_PER_PAGE)
     }
   ) // No function is provided to handle the connection failing and so that
       // error will flow through to the next .then
