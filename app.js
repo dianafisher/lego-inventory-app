@@ -8,6 +8,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const assert = require('assert');
 const cors = require('cors');
+const expressValidator = require('express-validator');
 
 const errorHandlers = require('./handlers/errorHandlers');
 const index = require('./routes/index');
@@ -27,6 +28,9 @@ app.set('view engine', 'ejs'); // we use the EJS engine
 // Takes the raw requests and turns them into usable properties on req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Use expressValidator to validate data
+app.use(expressValidator());
 
 // set up the port
 app.set('port', (process.env.PORT || 5000));

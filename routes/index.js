@@ -1,6 +1,7 @@
 const express = require('express');
 const cool = require('cool-ascii-faces');
 const csv = require('csv');
+
 const ObjectID = require('mongodb').ObjectID;
 const https = require('https');
 const DB = require('../db');
@@ -9,7 +10,7 @@ const router = express.Router();
 const barcodeController = require('../controllers/barcodeController');
 const bricksetController = require('../controllers/bricksetController');
 const awsController = require('../controllers/awsController');
-// const sampleController = require('../controllers/sampleController');
+const itemsController = require('../controllers/itemsController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
@@ -66,6 +67,12 @@ router.get('/account', (req, res) => res.render('account'));
 router.post('/save-details', (req, res) => {
   // TODO: Read POSTed form data and do something useful
 });
+
+/* ITEMS API */
+router.post('/api/items',
+  itemsController.validateItem,
+  itemsController.addItem
+)
 
 
 /* Barcode Lookup */
@@ -175,6 +182,9 @@ router.post('/addDoc', function(req, res, next) {
   )
 });
 
+/* "/api/items:id"
+ * method: DELETE - deletes item with specified id
+ */
 router.delete('/api/items/:id', function(req, res, next) {
   //req.params.id
   let database = new DB;
@@ -207,6 +217,11 @@ router.delete('/api/items/:id', function(req, res, next) {
   )
 });
 
+/* "/api/items"
+ * method: GET
+ * params: page
+ * returns: array of items
+ */
 router.get('/api/items', function(req, res, next) {
   let page = req.query.page ? parseInt(req.query.page) : 0;
   console.log('page', page);
@@ -242,6 +257,44 @@ router.get('/api/items', function(req, res, next) {
     }
   )
 });
+
+// /* "/api/items"
+//  * method: POST - creates a new item
+//  */
+// router.post('/api/items', function(req, res, next) {
+//   let requestBody = req.body;
+//   let database = new DB;
+//
+//   database.connect()
+//   .then(
+//     function() {
+//       // returning will pass the promise returned by addDoc to
+//       // the next .then in the chain
+//       return database.addDocument(ITEMS_COLLECTION, requestBody.item)
+//     })
+//     // No function is provided to handle the connection failing and so that
+// 		// error will flow through to the next .then
+//   .then(
+//     function(docs) {
+//       return {
+//         "success": true,
+//         "error": ""
+//       };
+//     },
+//     function(error) {
+//       console.log('Failed to add document ' + error);
+//       return {
+//         "success": false,
+//         "error": "Failed to add document " + error
+//       };
+//     })
+//   .then(
+//     function(resultObject) {
+//       database.close();
+//       res.json(resultObject);
+//     }
+//   )
+// });
 
 router.post('/getDocs', function(req, res, next) {
   /* Request from client to read a sample of the documents from a collection;
