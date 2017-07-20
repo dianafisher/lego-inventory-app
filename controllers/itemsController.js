@@ -9,11 +9,17 @@ exports.validateItem = (req, res, next) => {
 
   req.sanitizeBody('title');
 
-  // check the request body for upc and imageURL
+  // check that fields are not empty
   req.checkBody('upc', 'UPC cannot be empty').notEmpty();
   req.checkBody('title', 'Title cannot be empty').notEmpty();
 
+  // check that the upc code is valid
   req.checkBody('upc', 'Invalid UPC').isUPC();
+
+  // if provided, check that the imageURL is valid
+  if (req.body.imageUrl) {    
+    req.checkBody('imageUrl', 'Invalid URL').isURL();
+  }
 
   req.getValidationResult().then(
     function(result){
