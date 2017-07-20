@@ -37,7 +37,7 @@ exports.uploadImage = async (req, res) => {
   console.log(req.body);
   try {
     const url = req.body.url;
-    const imageURL = await uploadImageToS3(url);
+    const imageURL = await this.uploadImageToS3(url);
     console.log('imageURL', imageURL);
     const result = { imageURL };
     res.status(200).json(result);
@@ -48,7 +48,7 @@ exports.uploadImage = async (req, res) => {
   }
 }
 
-function uploadImageToS3(url) {
+exports.uploadImageToS3 = (url) => {
   return new Promise(function(resolve, reject){
     let contentType = '';
     let fileName = '';

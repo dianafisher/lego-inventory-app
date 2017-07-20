@@ -2,6 +2,7 @@ const util = require('util');
 const ObjectID = require('mongodb').ObjectID;
 const https = require('https');
 const DB = require('../db');
+const awsController = require('../controllers/awsController');
 const ITEMS_COLLECTION = "items";
 
 exports.validateItem = (req, res, next) => {
@@ -17,7 +18,7 @@ exports.validateItem = (req, res, next) => {
   req.checkBody('upc', 'Invalid UPC').isUPC();
 
   // if provided, check that the imageURL is valid
-  if (req.body.imageUrl) {    
+  if (req.body.imageUrl) {
     req.checkBody('imageUrl', 'Invalid URL').isURL();
   }
 
@@ -40,9 +41,15 @@ exports.validateItem = (req, res, next) => {
   });
 }
 
-exports.addItem = (req, res) => {
+exports.addItem = async (req, res) => {
   let requestBody = req.body;
   let database = new DB;
+
+  if (req.body.imageUrl) {
+    const awsURL = await awsController.uploadImageToS3(req.body.imageUrl);
+    console.log('awsURL', awsURL);
+  }
+
 
   database.connect()
   .then(

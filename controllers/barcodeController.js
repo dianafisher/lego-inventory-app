@@ -1,9 +1,8 @@
 const https = require('https');
-const aws = require('aws-sdk');
 const request = require('request');
 const uuid = require('uuid');
+const awsController = require('../controllers/awsController');
 
-const S3_BUCKET = process.env.S3_BUCKET_NAME;
 const DB = require('../db');
 
 /* "/barcodes/:code"
@@ -30,7 +29,7 @@ exports.lookupBarCode = async (req, res) => {
       const doc = await getProductByUPC(upc);
       console.log('document', doc);
       if (doc.images.length) {
-        const imageURL = await uploadToS3(doc.images[0]);
+        const imageURL = await awsController.uploadImageToS3(doc.images[0]);
         console.log('imageURL', imageURL);
         doc.productImage = imageURL;
       }
@@ -197,80 +196,33 @@ function handleItemImageURLs(document, urls) {
   document.images = urls;
 }
 
-function uploadToS3(url) {
-  return new Promise(function(resolve, reject){
-    let contentType = '';
-    let fileName = '';
 
-    request.get({url: url, encoding: null}, function(err, res) {
-      if (err) {
-        console.log(err);
-        reject(err);
-      } else {
-        console.log('status code: ', res.statusCode);
-        console.log(res.headers);
-        console.log(typeof res.body);
-        console.log(res.url);
-
-        let extension = 'jpg';
-        // create a unique filename using uuid
-        if (contentType === 'image/png') {
-          extension = 'png';
-        }
-
-        contentType = res.headers['content-type'];
-        fileName = `${uuid.v4()}.${extension}`;
-
-        const s3 = new aws.S3();
-
-        s3.putObject({
-          Bucket: S3_BUCKET,
-          Key: fileName,
-          Body: res.body,
-          ContentType: contentType,
-          ACL: 'public-read'
-        }, function(error, data){
-          if (error) {
-            console.log(error);
-            reject(error);
-          } else {
-            console.log(data);
-            const awsURL = `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`;
-            console.log(awsURL);
-            resolve(awsURL);
-          }
-        });
-      }
-    });
-  });
-}
-
-function getSignedAWSRequest(fileName, fileType) {
-  const s3 = new aws.S3();
-
-  const s3Params = {
-    Bucket: S3_BUCKET,
-    Key: fileName,
-    Expires: 60,
-    ContentType: fileType,
-    ACL: 'public-read'
-  };
-
-  return new Promise(function(resolve, reject){
-    s3.getSignedUrl('putObject', s3Params, (err, data) => {
-      if(err){
-        console.log(err);
-        reject(err);
-      }
-      const returnData = {
-        signedRequest: data,
-        url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
-      };
-      console.log(JSON.stringify(returnData));
-      resolve(returnData);
-    });
-  });
-}
+// function getSignedAWSRequest(fileName, fileType) {
+//   const s3 = new aws.S3();
+//
+//   const s3Params = {
+//     Bucket: S3_BUCKET,
+//     Key: fileName,
+//     Expires: 60,
+//     ContentType: fileType,
+//     ACL: 'public-read'
+//   };
+//
+//   return new Promise(function(resolve, reject){
+//     s3.getSignedUrl('putObject', s3Params, (err, data) => {
+//       if(err){
+//         console.log(err);
+//         reject(err);
+//       }
+//       const returnData = {
+//         signedRequest: data,
+//         url: `https://${S3_BUCKET}.s3.amazonaws.com/${fileName}`
+//       };
+//       console.log(JSON.stringify(returnData));
+//       resolve(returnData);
+//     });
+//   });
+// }
 
 
 /* "/barcodes/:code"
