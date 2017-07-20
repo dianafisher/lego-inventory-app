@@ -41,15 +41,25 @@ exports.validateItem = (req, res, next) => {
   });
 }
 
+exports.uploadImage = async (req, res, next) => {
+  if (!req.body.imageUrl) {
+    // nothing to upload, so skip to the next middleware
+    next();
+    return;
+  }
+  const awsURL = await awsController.uploadImageToS3(req.body.imageUrl);
+  console.log('awsURL', awsURL);
+  // save the returned AWS url to res.locals for the next middleware
+  res.locals.productImage = awsURL;
+  next();
+}
+
 exports.addItem = async (req, res) => {
   let requestBody = req.body;
   let database = new DB;
 
-  if (req.body.imageUrl) {
-    const awsURL = await awsController.uploadImageToS3(req.body.imageUrl);
-    console.log('awsURL', awsURL);
-  }
-
+  // read the productImage from res.locals
+  requestBody.productImage = res.locals.productImage;
 
   database.connect()
   .then(
@@ -59,11 +69,13 @@ exports.addItem = async (req, res) => {
       return database.addDocument(ITEMS_COLLECTION, requestBody)
     })
     // No function is provided to handle the connection failing and so that
-    // error will flow through to the next .then
+    // error will flow through to the next .then() in the chain
   .then(
     function(docs) {
+      console.log('success', docs);
       return {
         "success": true,
+        "document": docs,
         "error": ""
       };
     },

@@ -71,6 +71,7 @@ router.post('/save-details', (req, res) => {
 /* ITEMS API */
 router.post('/api/items',
   itemsController.validateItem,
+  itemsController.uploadImage,
   itemsController.addItem
 )
 
