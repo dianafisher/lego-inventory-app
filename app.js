@@ -30,7 +30,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Use expressValidator to validate data
-app.use(expressValidator());
+app.use(expressValidator({
+  customValidators: {
+    isUPC: function(value) {
+      /* A valid UPC-A code contains 12 numbers.  No letters, characters, or
+        other content of any kind may appear.
+        source: https://en.wikipedia.org/wiki/Universal_Product_Code
+      */
+      const numbers = /^\d+$/;
+      const length = value.length;
+
+      return length === 12 && numbers.test(value);
+    }
+  }
+}));
 
 // set up the port
 app.set('port', (process.env.PORT || 5000));

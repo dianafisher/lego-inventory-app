@@ -13,6 +13,8 @@ exports.validateItem = (req, res, next) => {
   req.checkBody('upc', 'UPC cannot be empty').notEmpty();
   req.checkBody('title', 'Title cannot be empty').notEmpty();
 
+  req.checkBody('upc', 'Invalid UPC').isUPC();
+
   req.getValidationResult().then(
     function(result){
       if (!result.isEmpty()) {
