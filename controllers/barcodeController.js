@@ -1,6 +1,4 @@
 const https = require('https');
-const request = require('request');
-const uuid = require('uuid');
 const awsController = require('../controllers/awsController');
 
 const DB = require('../db');

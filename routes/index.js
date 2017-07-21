@@ -69,12 +69,21 @@ router.post('/save-details', (req, res) => {
 });
 
 /* ITEMS API */
+
+/* POST /api/items
+ * Creates a new item
+ */
 router.post('/api/items',
   itemsController.validateItem,
   itemsController.uploadImage,
   itemsController.addItem
 )
-
+/* PUT /api/upc
+ * Looks up an item by UPC-A barcode.
+ */
+router.put('/api/upc',
+  barcodeController.lookupBarCode
+)
 
 /* Barcode Lookup */
 
