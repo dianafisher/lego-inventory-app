@@ -53,8 +53,11 @@ app.use(expressValidator({
         other content of any kind may appear.
         source: https://en.wikipedia.org/wiki/Universal_Product_Code
       */
-      const numbers = /^\d+$/;
+      if (!value) {
+        return false;
+      }
       const length = value.length;
+      const numbers = /^\d+$/;
 
       return length === 12 && numbers.test(value);
     }
