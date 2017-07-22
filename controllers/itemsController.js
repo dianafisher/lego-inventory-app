@@ -1,9 +1,11 @@
+const mongoose = require('mongoose');
 const util = require('util');
-const ObjectID = require('mongodb').ObjectID;
+// const ObjectID = require('mongodb').ObjectID;
 const https = require('https');
-const DB = require('../db');
+// const DB = require('../db');
+const Item = mongoose.model('Item');
 const awsController = require('../controllers/awsController');
-const ITEMS_COLLECTION = "items";
+// const ITEMS_COLLECTION = "items";
 
 exports.validateItem = (req, res, next) => {
   console.log('body', req.body);
@@ -56,40 +58,47 @@ exports.uploadImage = async (req, res, next) => {
 
 exports.addItem = async (req, res) => {
   let requestBody = req.body;
-  let database = new DB;
 
   // read the productImage from res.locals
   requestBody.productImage = res.locals.productImage;
 
-  database.connect()
-  .then(
-    function() {
-      // returning will pass the promise returned by addDoc to
-      // the next .then in the chain
-      return database.addDocument(ITEMS_COLLECTION, requestBody)
-    })
-    // No function is provided to handle the connection failing and so that
-    // error will flow through to the next .then() in the chain
-  .then(
-    function(docs) {
-      console.log('success', docs);
-      return {
-        "success": true,
-        "document": docs,
-        "error": ""
-      };
-    },
-    function(error) {
-      console.log('Failed to add document ' + error);
-      return {
-        "success": false,
-        "error": "Failed to add document " + error
-      };
-    })
-  .then(
-    function(resultObject) {
-      database.close();
-      res.json(resultObject);
-    }
-  )
+  const item = await (new Item(requestBody)).save();
+  const result = {
+    success: true,
+    item: item,
+    error: ''
+  }
+  res.json(result);
+
+  // database.connect()
+  // .then(
+  //   function() {
+  //     // returning will pass the promise returned by addDoc to
+  //     // the next .then in the chain
+  //     return database.addDocument(ITEMS_COLLECTION, requestBody)
+  //   })
+  //   // No function is provided to handle the connection failing and so that
+  //   // error will flow through to the next .then() in the chain
+  // .then(
+  //   function(docs) {
+  //     console.log('success', docs);
+  //     return {
+  //       "success": true,
+  //       "document": docs,
+  //       "error": ""
+  //     };
+  //   },
+  //   function(error) {
+  //     console.log('Failed to add document ' + error);
+  //     return {
+  //       "success": false,
+  //       "error": "Failed to add document " + error
+  //     };
+  //   })
+  // .then(
+  //   function(resultObject) {
+  //     database.close();
+  //     res.json(resultObject);
+  //   }
+  // )
 };

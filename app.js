@@ -9,8 +9,24 @@ const bodyParser = require('body-parser');
 const assert = require('assert');
 const cors = require('cors');
 const expressValidator = require('express-validator');
-
 const errorHandlers = require('./handlers/errorHandlers');
+
+// set up mongoose
+const mongoose = require('mongoose');
+mongoose.connect(process.env.MONGODB_URI, {
+  config: { autoIndex: false },
+  useMongoClient: true,
+});
+mongoose.Promise = global.Promise;
+const db = mongoose.connection;
+db.on('error', (err) => {
+  console.error(`🙅 🚫 🙅 🚫 🙅 🚫 🙅 🚫 → ${err.message}`);
+});
+
+// import our models
+require('./models/Item');
+require('./models/User');
+
 const index = require('./routes/index');
 
 // create our Express app
