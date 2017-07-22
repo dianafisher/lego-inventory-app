@@ -1,11 +1,8 @@
 const mongoose = require('mongoose');
 const util = require('util');
-// const ObjectID = require('mongodb').ObjectID;
 const https = require('https');
-// const DB = require('../db');
 const Item = mongoose.model('Item');
 const awsController = require('../controllers/awsController');
-// const ITEMS_COLLECTION = "items";
 
 exports.validateItem = (req, res, next) => {
   console.log('body', req.body);
@@ -43,6 +40,7 @@ exports.validateItem = (req, res, next) => {
   });
 }
 
+// upload an image to AWS S3
 exports.uploadImage = async (req, res, next) => {
   if (!req.body.imageUrl) {
     // nothing to upload, so skip to the next middleware
@@ -56,6 +54,7 @@ exports.uploadImage = async (req, res, next) => {
   next();
 }
 
+// create a new item
 exports.addItem = async (req, res) => {
   let requestBody = req.body;
 
@@ -69,36 +68,40 @@ exports.addItem = async (req, res) => {
     error: ''
   }
   res.json(result);
-
-  // database.connect()
-  // .then(
-  //   function() {
-  //     // returning will pass the promise returned by addDoc to
-  //     // the next .then in the chain
-  //     return database.addDocument(ITEMS_COLLECTION, requestBody)
-  //   })
-  //   // No function is provided to handle the connection failing and so that
-  //   // error will flow through to the next .then() in the chain
-  // .then(
-  //   function(docs) {
-  //     console.log('success', docs);
-  //     return {
-  //       "success": true,
-  //       "document": docs,
-  //       "error": ""
-  //     };
-  //   },
-  //   function(error) {
-  //     console.log('Failed to add document ' + error);
-  //     return {
-  //       "success": false,
-  //       "error": "Failed to add document " + error
-  //     };
-  //   })
-  // .then(
-  //   function(resultObject) {
-  //     database.close();
-  //     res.json(resultObject);
-  //   }
-  // )
 };
+
+// get items with pagination
+exports.getItems = async (req, res) => {
+  // query the database for the list of all items
+  const page = req.params.page || 1;
+  const limit = 10; // limit 10 items per page
+  const skip = (page * limit) - limit;
+
+  const itemsPromise = Item.find()
+    .skip(skip)
+    .limit(limit)
+    .sort({ created: 'desc' });
+
+  // count the number of item records in the database
+  const countPromise = Item.count();
+
+  // wait for both promises to return
+  const [items, count] = await Promise.all([itemsPromise, countPromise]);
+
+  // calculate the number of pages we have
+  const pages = Math.ceil(count / limit);
+  if (!items.length && skip) {
+    console.log(`page ${page} does not exist!`);
+    res.redirect(`/api/items/page/${pages}`);
+    return;
+  }
+
+  const result = {
+    items,
+    page,
+    pages,
+    count
+  };
+
+  res.json(result);
+}

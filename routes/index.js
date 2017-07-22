@@ -62,7 +62,9 @@ router.post('/register',
   userController.register
 );
 
-/* ITEMS API */
+/* ITEMS */
+
+router.get('/api/items', catchErrors(itemsController.getItems));
 
 /* POST /api/items
  * Creates a new item
