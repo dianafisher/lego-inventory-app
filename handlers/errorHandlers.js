@@ -12,6 +12,22 @@ exports.catchErrors = (fn) => {
 };
 
 /*
+  MongoDB Validation Error Handler
+
+  Detect if there are mongodb validation errors that we can nicely show via flash messages
+*/
+
+exports.flashValidationErrors = (err, req, res, next) => {
+  // if there are no errors to show, then skip it and pass the error on.
+  if (!err.errors) return next(err);
+  // validation errors look like
+  const errorKeys = Object.keys(err.errors);
+  errorKeys.forEach(key => req.flash('error', err.errors[key].message));
+  res.redirect('back');
+};
+
+
+/*
   Development Error Hanlder
 
   In development we show good error messages so if we hit a syntax error or any other previously un-handled error, we can show good info on what happened
@@ -23,7 +39,7 @@ exports.developmentErrors = (err, req, res, next) => {
     status: err.status,
     stackHighlighted: err.stack.replace(/[a-z_-\d]+.js:\d+:\d+/gi, '<mark>$&</mark>')
   };
-  
+
   res.status(err.status || 500);
   res.format({
     // Based on the `Accept` http header

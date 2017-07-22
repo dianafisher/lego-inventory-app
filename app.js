@@ -8,6 +8,7 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const assert = require('assert');
 const cors = require('cors');
+const flash = require('connect-flash');
 const expressValidator = require('express-validator');
 const errorHandlers = require('./handlers/errorHandlers');
 
@@ -71,6 +72,18 @@ app.set('port', (process.env.PORT || 5000));
 app.use(cors());
 app.options('*', cors());
 
+// use flash middleware
+app.use(flash());
+
+// pass variables
+app.use((req, res, next) => {
+  res.locals.flashes = req.flash();
+  res.locals.user = req.user || null;
+  res.locals.currentPath = req.path;
+  next();
+})
+
+
 // Define a single route
 app.use('/', index.router);
 
@@ -86,29 +99,20 @@ app.use('/', index.router);
 //   res.render('error');
 // });
 
-// pass variables to our templates + all requests
-// app.use((req, res, next) => {
-//   res.locals.h = helpers;
-//   // res.locals.flashes = req.flash();  // pull out any flashes that need to be shown
-//   // res.locals.user = req.user || null;
-//   res.locals.currentPath = req.path;
-//   next();
-// });
-
 // If that above routes didnt work, we 404 them and forward to error handler
-// app.use(errorHandlers.notFound);
+app.use(errorHandlers.notFound);
 
 // One of our error handlers will see if these errors are just validation errors
-// app.use(errorHandlers.flashValidationErrors);
+app.use(errorHandlers.flashValidationErrors);
 
 // Otherwise this was a really bad error we didn't expect! Shoot eh
-// if (app.get('env') === 'development') {
-//   /* Development Error Handler - Prints stack trace */
-//   app.use(errorHandlers.developmentErrors);
-// }
+if (app.get('env') === 'development') {
+  /* Development Error Handler - Prints stack trace */
+  app.use(errorHandlers.developmentErrors);
+}
 
 // production error handler
-// app.use(errorHandlers.productionErrors);
+app.use(errorHandlers.productionErrors);
 
 // // start the app
 app.listen(app.get('port'), function() {
