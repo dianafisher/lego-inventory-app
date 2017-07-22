@@ -24,19 +24,20 @@ exports.validateItem = (req, res, next) => {
   req.getValidationResult().then(
     function(result){
       if (!result.isEmpty()) {
-        res.status(400).send('There have been validation errors: ' + util.inspect(result.array()));
+        let message = 'There have been validation errors: ' + util.inspect(result.array());
+        res.status(400).send(message);
         return;
       }
       else {
         // valid
-        console.log('no validation errors');
+        console.log('no validation errors');        
         next();
       }
     }, function(error) {
       console.log('Failed to get validation result ' + error);
     })
-  .catch(function() {
-    console.log('Promise rejected');
+  .catch(function(err) {
+    console.log('Promise rejected: ' + err);
   });
 }
 

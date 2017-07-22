@@ -2,13 +2,15 @@
 require('dotenv').config({ path: '.env' });
 
 const express = require('express');
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session);
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const assert = require('assert');
 const cors = require('cors');
-const flash = require('connect-flash');
+
 const expressValidator = require('express-validator');
 const errorHandlers = require('./handlers/errorHandlers');
 
@@ -65,6 +67,15 @@ app.use(expressValidator({
   }
 }));
 
+// set up sessions
+app.use(session({
+  secret: process.env.SECRET,
+  key: process.env.KEY,
+  resave: false,
+  saveUninitialized: false,
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
+}));
+
 // set up the port
 app.set('port', (process.env.PORT || 5000));
 
@@ -72,12 +83,8 @@ app.set('port', (process.env.PORT || 5000));
 app.use(cors());
 app.options('*', cors());
 
-// use flash middleware
-app.use(flash());
-
 // pass variables
 app.use((req, res, next) => {
-  res.locals.flashes = req.flash();
   res.locals.user = req.user || null;
   res.locals.currentPath = req.path;
   next();
@@ -88,22 +95,7 @@ app.use((req, res, next) => {
 app.use('/', index.router);
 
 
-// error handler
-// app.use(function(err, req, res, next) {
-//   // set locals, only providing error in development
-//   res.locals.message = err.message;
-//   res.locals.error = req.app.get('env') === 'development' ? err : {};
-//
-//   // render the error page
-//   res.status(err.status || 500);
-//   res.render('error');
-// });
-
-// If that above routes didnt work, we 404 them and forward to error handler
 app.use(errorHandlers.notFound);
-
-// One of our error handlers will see if these errors are just validation errors
-app.use(errorHandlers.flashValidationErrors);
 
 // Otherwise this was a really bad error we didn't expect! Shoot eh
 if (app.get('env') === 'development') {
