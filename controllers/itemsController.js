@@ -24,13 +24,18 @@ exports.validateItem = (req, res, next) => {
   req.getValidationResult().then(
     function(result){
       if (!result.isEmpty()) {
-        let message = 'There have been validation errors: ' + util.inspect(result.array());
+        let error = {
+          type: 'validation',
+          errors: result.array()
+         }
+        // let message = 'Validation errors: ' + util.inspect(result.array());
+        let message = JSON.stringify(error);
         res.status(400).send(message);
         return;
       }
       else {
         // valid
-        console.log('no validation errors');        
+        console.log('no validation errors');
         next();
       }
     }, function(error) {
