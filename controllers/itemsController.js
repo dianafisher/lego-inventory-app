@@ -98,7 +98,7 @@ exports.getItems = async (req, res) => {
   const pages = Math.ceil(count / limit);
   if (!items.length && skip) {
     console.log(`page ${page} does not exist!`);
-    res.redirect(`/api/items/page/${pages}`);
+    // res.redirect(`/api/items/page/${pages}`);
     return;
   }
 
@@ -110,4 +110,18 @@ exports.getItems = async (req, res) => {
   };
 
   res.json(result);
+}
+
+// get a single item
+exports.getItem = async (req, res) => {
+  const itemId = req.params.id;
+
+  const item = await Item.findOne({ _id: itemId });
+  if (!item) {
+    res.status(404).send('Item not found');
+  } else {
+    const result = {item};
+    res.status(200).json(result);
+  }
+
 }

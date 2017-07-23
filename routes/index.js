@@ -74,6 +74,11 @@ router.post('/api/items',
   itemsController.uploadImage,
   itemsController.addItem
 )
+/* GET /api/items/:id
+ * Get an item by the specified id
+ */
+ router.get('/api/items/:id', catchErrors(itemsController.getItem));
+
 /* PUT /api/upc
  * Looks up an item by UPC-A barcode.
  */
