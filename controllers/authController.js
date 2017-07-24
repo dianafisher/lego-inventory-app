@@ -2,27 +2,9 @@ const passport = require('passport');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const promisify = require('es6-promisify');
-const LocalStrategy = require('passport-local').Strategy;
-
-// passport.use(new LocalStrategy(
-//   function(username, password, done) {
-//     User.findOne({ username: username }, function(err, user) {
-//       if (err) { return done(err); }
-//       if (!user) {
-//         return done(null, false, { message: 'Incorrect username.' });
-//       }
-//       if (!user.validPassword(password)) {
-//         return done(null, false, { message: 'Incorrect password.' });
-//       }
-//       return done(null, user);
-//     });
-//   }
-// ));
-
 
 exports.login = (req, res) => {
-  try {
-    console.log('authController');
+  try {    
     User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
@@ -36,8 +18,8 @@ exports.login = (req, res) => {
       } else {
         req.login(user, function(err) {
           res.send({
+            message: `${user.name} is now logged in!`,
             success: true,
-            user: user._id
           })
         })
       }

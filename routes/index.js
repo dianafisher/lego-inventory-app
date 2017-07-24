@@ -58,7 +58,7 @@ router.get('/account', (req, res) => res.render('account'));
 
 /* USERS */
 
-router.post('/register',
+router.post('/api/register',
   userController.validateRegister,
   userController.register,
   authController.login

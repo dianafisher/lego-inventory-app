@@ -12,12 +12,12 @@ const userSchema = new Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    validate: [validator.isEmail, 'Invalid Email Address'],
-    require: 'Please provide an email address'
+    // validate: [validator.isEmail, 'Invalid Email Address'],
+    require: [true, 'Please provide an email address']
   },
   name: {
     type: String,
-    required: 'Please provide a name.',
+    required: [true, 'Please provide a name.'],
     trim: true
   },
   resetPasswordToken: String,
