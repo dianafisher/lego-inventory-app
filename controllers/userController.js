@@ -52,7 +52,13 @@ exports.register = async (req, res, next) => {
     // next middleware
     next();
   } catch(error) {
-    console.log('Error: ' + error);
-    res.status(500).json(error);
+    console.log('userController Error: ' + error);
+    // what type of error is it?
+    if (error.name === 'UserExistsError') {
+      res.status(422).json(error);
+    } else {
+      res.status(500).json(error);
+    }
+
   }
 }

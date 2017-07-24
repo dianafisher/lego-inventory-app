@@ -31,7 +31,15 @@ const userSchema = new Schema({
 }, { collection: 'users' })
 
 userSchema.plugin(timestamps);
-userSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
+
+// configure options for passportLocalMongoose
+const options = {
+  usernameField: 'email',
+  errorMessages: {
+    UserExistsError: 'A user with the given email is already registered.'
+  }
+}
+userSchema.plugin(passportLocalMongoose, options);
 userSchema.plugin(mongodbErrorHandler);
 
 module.exports = exports = mongoose.model('User', userSchema);

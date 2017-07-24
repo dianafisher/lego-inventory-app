@@ -4,7 +4,7 @@ const User = mongoose.model('User');
 const promisify = require('es6-promisify');
 
 exports.login = (req, res) => {
-  try {    
+  try {
     User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
@@ -41,7 +41,7 @@ exports.login = (req, res) => {
     //   }
     // });
   } catch(error) {
-    console.log('Error: ' + error);
+    console.log('authController Error: ' + error);
     res.status(500).json(error);
   }
 
