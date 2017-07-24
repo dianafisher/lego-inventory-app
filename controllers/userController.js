@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
-const promsify = require('es6-promisify');
+const promisify = require('es6-promisify');
 
 exports.validateRegister = (req, res, next) => {
-  req.sanitizeBody('name');
-  req.checkBody('name', 'You must supply a name!').notEmpty();
-  req.checkBody('email', 'Invalid email!').isEmail();
-  req.sanitizeBody('email').normalizeEmail({
-    remove_extension: false
-  });
+  req.sanitizeBody('username');
+  req.checkBody('username', 'You must supply a username!').notEmpty();
+
   // check that password is not blank
   req.checkBody('password', 'Password cannot be blank!').notEmpty();
 
@@ -33,15 +30,25 @@ exports.validateRegister = (req, res, next) => {
 
 // middleware to handle user registration
 exports.register = async (req, res, next) => {
+  console.log(req.body);
   // create a new user
   const user = new User({
-    email: req.body.email,
-    name: req.body.name
+    username: req.body.username
   });
 
-  // promisify User.register so that it returns a Promise
-  const registerWithPromise = promisify(User.register, User);
-  await registerWithPromise(user, req.body.password); // stores password as a hash in the db.
+  console.log('inside userController',user);
+  try {
+    // promisify User.register so that it returns a Promise
+    const registerWithPromise = promisify(User.register, User);
 
-  next();
+    // store password as a hash in the db.
+    await registerWithPromise(user, req.body.password);
+    
+    // next middleware
+    next();
+  } catch(error) {
+    console.log('Error: ' + error);
+    res.status(500).json(error);
+  }
+
 }

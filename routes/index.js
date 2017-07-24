@@ -10,6 +10,7 @@ const bricksetController = require('../controllers/bricksetController');
 const awsController = require('../controllers/awsController');
 const itemsController = require('../controllers/itemsController');
 const userController = require('../controllers/userController');
+const authController = require('../controllers/authController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
@@ -59,7 +60,8 @@ router.get('/account', (req, res) => res.render('account'));
 
 router.post('/register',
   userController.validateRegister,
-  userController.register
+  userController.register,
+  authController.login
 );
 
 /* ITEMS */

@@ -10,12 +10,13 @@ const fs = require('fs');
 const bodyParser = require('body-parser');
 const assert = require('assert');
 const cors = require('cors');
-
+const passport = require('passport');
 const expressValidator = require('express-validator');
 const errorHandlers = require('./handlers/errorHandlers');
 
 // set up mongoose
 const mongoose = require('mongoose');
+
 mongoose.connect(process.env.MONGODB_URI, {
   config: { autoIndex: false },
   useMongoClient: true,
@@ -67,7 +68,7 @@ app.use(expressValidator({
   }
 }));
 
-// set up sessions
+// set up express session
 app.use(session({
   secret: process.env.SECRET,
   key: process.env.KEY,
@@ -75,6 +76,18 @@ app.use(session({
   saveUninitialized: false,
   store: new MongoStore({ mongooseConnection: mongoose.connection })
 }));
+
+// set up Passport JS to handle user authentication
+// initialize passport
+app.use(passport.initialize());
+// our app uses persistent login sessions, so use passport.session()
+app.use(passport.session());
+const User = mongoose.model('User');
+
+passport.use(User.createStrategy());
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 
 // set up the port
 app.set('port', (process.env.PORT || 5000));
