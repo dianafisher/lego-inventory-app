@@ -3,8 +3,15 @@ const User = mongoose.model('User');
 const promisify = require('es6-promisify');
 
 exports.validateRegister = (req, res, next) => {
-  req.sanitizeBody('username');
-  req.checkBody('username', 'You must supply a username!').notEmpty();
+  req.sanitizeBody('rname');
+  req.checkBody('name', 'You must supply a name!').notEmpty();
+
+  req.checkBody('email', 'Invalid email!').isEmail();
+  req.sanitizeBody('email').normalizeEmail({
+    remove_dots: false,
+    remove_extension: false,
+    gmail_remove_subaddress: false
+  });
 
   // check that password is not blank
   req.checkBody('password', 'Password cannot be blank!').notEmpty();
@@ -32,9 +39,7 @@ exports.validateRegister = (req, res, next) => {
 exports.register = async (req, res, next) => {
   console.log(req.body);
   // create a new user
-  const user = new User({
-    username: req.body.username
-  });
+  const user = new User({ email: req.body.email, name: req.body.name});
 
   console.log('inside userController',user);
   try {
@@ -43,12 +48,11 @@ exports.register = async (req, res, next) => {
 
     // store password as a hash in the db.
     await registerWithPromise(user, req.body.password);
-    
+
     // next middleware
     next();
   } catch(error) {
     console.log('Error: ' + error);
     res.status(500).json(error);
   }
-
 }

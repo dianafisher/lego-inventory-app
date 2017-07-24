@@ -23,7 +23,7 @@ const LocalStrategy = require('passport-local').Strategy;
 exports.login = (req, res) => {
   try {
     console.log('authController');
-    User.authenticate()(req.body.username, req.body.password, function(err, user, options) {
+    User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
         res.status(500).json(err);
@@ -37,7 +37,7 @@ exports.login = (req, res) => {
         req.login(user, function(err) {
           res.send({
             success: true,
-            user: user
+            user: user._id
           })
         })
       }
