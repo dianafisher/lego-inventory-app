@@ -46,3 +46,23 @@ exports.login = (req, res) => {
   }
 
 }
+
+exports.logout = (req, res) => {
+  req.logout();
+  res.status(200).send({
+    message: `${user.name} is logged out`,
+    success: true
+  })
+}
+
+exports.isLoggedIn = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    next();  // carry on!
+    return;
+  }
+  const error = {
+    message: 'You must be logged in to do that!',
+    success: false
+  };
+  res.status(500).json(error);
+}

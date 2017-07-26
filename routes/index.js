@@ -93,7 +93,11 @@ router.post('/api/items',
 // )
 
 /* UPC */
-router.put('/api/upc', upcController.lookupUPC);
+router.put('/api/upc',
+  itemsController.getItemByUPC,
+  upcController.lookupUPC,
+  itemsController.createItem
+);
 
 /* Barcode Lookup */
 

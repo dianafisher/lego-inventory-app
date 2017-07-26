@@ -6,10 +6,38 @@ const validator = require('validator');
 const mongodbErrorHandler = require('mongoose-mongodb-errors');
 const passportLocalMongoose = require('passport-local-mongoose');
 
+const UserItem = new mongoose.Schema({
+  title: {
+    type: String,
+    trim: true,
+    required: 'Please enter an item title!'
+  },
+  upc: {
+    type: String,
+    unique: true,
+    trim: true,
+    required: 'Please enter a upc code!'
+  },
+  description: String,
+  ean: String,
+  asin: String,
+  brand: {
+    type: String,
+    trim: true,
+    required: 'Please enter a brand!'
+  },
+  model: String,
+  color: String,
+  size: String,
+  dimension: String,
+  image: String,
+  tags: [String]
+ });
+
 const userSchema = new Schema({
   email: {
     type: String,
-    unique: true,
+    index: { unique: true },
     lowercase: true,
     trim: true,
     // validate: [validator.isEmail, 'Invalid Email Address'],
@@ -22,13 +50,14 @@ const userSchema = new Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
-  items: [
-    {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Item'
-    }
-  ]
+  items: [UserItem]
 }, { collection: 'users' })
+
+// set up indexes
+userSchema.index({
+  title: 'text',
+  brand: 'text'
+});
 
 userSchema.plugin(timestamps);
 

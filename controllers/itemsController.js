@@ -1,3 +1,6 @@
+/* itemsController.js
+ *
+ */
 const mongoose = require('mongoose');
 const util = require('util');
 const https = require('https');
@@ -122,6 +125,40 @@ exports.getItem = async (req, res) => {
   } else {
     const result = {item};
     res.status(200).json(result);
+  }
+}
+
+/***/
+exports.getItemByUPC = async (req, res, next) => {
+  const upc = req.body.upc;
+  const item = await Item.findOne({
+    upc: upc
+  });
+  // console.log('item:', item);
+  // add the item to the req object for the next middleware
+  if (item) {
+    req.item = item;
+  }
+  next();
+}
+
+/***/
+exports.createItem = async (req, res) => {
+  // if the request already contains an item, then nothing needs to be done here
+  if (req.item) {
+    // next();
+    // return;
+    res.status(200).json(req.item);
+  }
+  if (req.doc) {
+    const doc = req.doc;
+    const item = await (new Item(doc)).save();
+    const result = {
+      success: true,
+      item: item,
+      error: ''
+    }
+    res.json(result);
   }
 
 }
