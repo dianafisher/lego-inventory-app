@@ -11,6 +11,7 @@ const awsController = require('../controllers/awsController');
 const itemsController = require('../controllers/itemsController');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
+const upcController = require('../controllers/upcController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
@@ -64,6 +65,9 @@ router.post('/api/register',
   authController.login
 );
 
+router.post('/api/login', authController.login);
+router.get('/api/logout', authController.logout);
+
 /* ITEMS */
 
 router.get('/api/items', catchErrors(itemsController.getItems));
@@ -84,9 +88,12 @@ router.post('/api/items',
 /* PUT /api/upc
  * Looks up an item by UPC-A barcode.
  */
-router.put('/api/upc',
-  barcodeController.lookupBarCode
-)
+// router.put('/api/upc',
+//   barcodeController.lookupBarCode
+// )
+
+/* UPC */
+router.put('/api/upc', upcController.lookupUPC);
 
 /* Barcode Lookup */
 
