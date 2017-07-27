@@ -101,12 +101,18 @@ exports.authenticate = async (req, res) => {
 
         // if user is found and password is right
         // create a token
-        var token = jwt.sign(user, process.env.JWT_SECRET, {
+        let u = {
+          name: user.name,
+          email: user.email,
+          _id: user._id.toString()
+        }
+        var token = jwt.sign(u, process.env.JWT_SECRET, {
           expiresIn: '24h' // expires in 24 hours
         });
 
         req.login(user, function(err) {
           res.send({
+            username: user.name,
             message: `${user.name} is now logged in!`,
             success: true,
             token: token
@@ -119,5 +125,9 @@ exports.authenticate = async (req, res) => {
     console.log('authController Error: ' + error);
     res.status(500).json(error);
   }
+
+}
+
+exports.meFromToken = async (req, res) => {
 
 }

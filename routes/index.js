@@ -18,32 +18,6 @@ const upcController = require('../controllers/upcController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
-// route middleware to verify a token
-router.use(function(req, res, next) {
-  const token = req.body.token || req.query.token || req.headers['x-access-token'];
-
-  if (token) {
-    // verfiy secret and check expiration
-    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
-      if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });
-      } else {
-        // if everything is good, save to request for use in other routes
-        req.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    // if there is no token, return an error
-    return res.status(403).send({
-        success: false,
-        message: 'No token provided.'
-    });
-  }
-
-});
-
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
   // res.render('index', { title: 'Lego Inventory' });
@@ -78,13 +52,41 @@ router.post('/api/register',
   authController.login
 );
 
+// router.post('/api/login', authController.login);
+router.get('/api/logout', authController.logout);
+router.post('/api/login', authController.authenticate);
+
+// route middleware to verify a token
+// any routes after this middleware will require a token
+router.use(function(req, res, next) {
+  const token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+  if (token) {
+    // verfiy secret and check expiration
+    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+      if (err) {
+        return res.json({ success: false, message: 'Failed to authenticate token.' });
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;
+        next();
+      }
+    });
+  } else {
+    // if there is no token, return an error
+    return res.status(403).send({
+        success: false,
+        message: 'No token provided.'
+    });
+  }
+
+});
+
 router.get('/api/users',
   userController.getUsers
 );
 
-router.post('/api/login', authController.login);
-router.get('/api/logout', authController.logout);
-router.post('/api/authenticate', authController.authenticate);
+router.get('/api/me/from/token', authController.meFromToken);
 
 /* ITEMS */
 
