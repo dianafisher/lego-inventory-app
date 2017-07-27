@@ -1,6 +1,9 @@
+// import environmental variables from our variables.env file
+require('dotenv').config({ path: '.env' });
+
 const express = require('express');
 const cool = require('cool-ascii-faces');
-
+const jwt = require('jsonwebtoken');   // for token generation
 const https = require('https');
 
 const router = express.Router();
@@ -15,21 +18,31 @@ const upcController = require('../controllers/upcController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
-// specify the collection in our inventory database
-const LEGOS_COLLECTION = "legos";
-const ITEMS_COLLECTION = "items";
+// route middleware to verify a token
+router.use(function(req, res, next) {
+  const token = req.body.token || req.query.token || req.headers['x-access-token'];
 
-const ITEMS_PER_PAGE = 10;
+  if (token) {
+    // verfiy secret and check expiration
+    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+      if (err) {
+        return res.json({ success: false, message: 'Failed to authenticate token.' });
+      } else {
+        // if everything is good, save to request for use in other routes
+        req.decoded = decoded;
+        next();
+      }
+    });
+  } else {
+    // if there is no token, return an error
+    return res.status(403).send({
+        success: false,
+        message: 'No token provided.'
+    });
+  }
 
-// Generic error handler used by all endpoints
-function handleError(res, reason, message, code) {
-  console.log("ERROR: " + reason);
-  res.status(code || 500).json({"error": message});
-}
+});
 
-router.get('/products/:id', function (req, res, next) {
-  res.json({msg: 'This is CORS-enabled for all origins!'})
-})
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -65,8 +78,13 @@ router.post('/api/register',
   authController.login
 );
 
+router.get('/api/users',
+  userController.getUsers
+);
+
 router.post('/api/login', authController.login);
 router.get('/api/logout', authController.logout);
+router.post('/api/authenticate', authController.authenticate);
 
 /* ITEMS */
 
@@ -94,6 +112,7 @@ router.post('/api/items',
 
 /* UPC */
 router.put('/api/upc',
+  authController.isLoggedIn,
   itemsController.getItemByUPC,
   upcController.lookupUPC,
   awsController.uploadImage,

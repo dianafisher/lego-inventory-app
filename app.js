@@ -8,9 +8,11 @@ const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const assert = require('assert');
 const cors = require('cors');
-const passport = require('passport');
+const passport = require('passport');  // for user authentication
+
 const expressValidator = require('express-validator');
 const errorHandlers = require('./handlers/errorHandlers');
 
@@ -68,6 +70,9 @@ app.use(expressValidator({
   }
 }));
 
+// populates req.cookies with any cookies that came along with the request
+app.use(cookieParser());
+
 // set up express session
 app.use(session({
   secret: process.env.SECRET,
@@ -82,6 +87,7 @@ app.use(session({
 app.use(passport.initialize());
 // our app uses persistent login sessions, so use passport.session()
 app.use(passport.session());
+
 const User = mongoose.model('User');
 
 passport.use(User.createStrategy());
@@ -98,7 +104,10 @@ app.options('*', cors());
 
 // pass variables to all requests
 app.use((req, res, next) => {
-  console.log('%s %s user = %s', req.method, req.url, req.user);
+  console.log('%s %s', req.method, req.url);
+  console.log('user: %s', req.user);
+  console.log('cookies:', req.cookies);
+
   res.locals.user = req.user || null;
   res.locals.currentPath = req.path;
   next();
