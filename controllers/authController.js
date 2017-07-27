@@ -10,7 +10,7 @@ const User = mongoose.model('User');
 exports.login = (req, res) => {
   try {
     console.log('request body', req.body);
-    User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
+    User.authenticate({ session: false })(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
         res.status(500).json(err);
@@ -21,30 +21,28 @@ exports.login = (req, res) => {
           success: false
         });
       } else {
+
+        // if user is found and password is right
+        // create a token
+        let u = {
+          name: user.name,
+          email: user.email,
+          _id: user._id.toString()
+        }
+        var token = jwt.sign(u, process.env.JWT_SECRET, {
+          expiresIn: '24h' // expires in 24 hours
+        });
+
         req.login(user, function(err) {
           res.send({
             message: `${user.name} is now logged in!`,
             success: true,
+            token: token
           })
         })
       }
     })
-    // passport.authenticate('local', function(err, user, info) {
-    //   console.log('err', err);
-    //   console.log('user', user);
-    //   console.log('info', info);
-    //   if (err) {
-    //     console.log('Error: ' + err);
-    //     res.status(500).json(err);
-    //   }
-    //   if (!user) {
-    //     res.status(404).send('No user returned');
-    //   }
-    //   if (info) {
-    //
-    //     res.status(200).json(info);
-    //   }
-    // });
+
   } catch(error) {
     console.log('authController Error: ' + error);
     res.status(500).json(error);
@@ -72,22 +70,22 @@ exports.logout = (req, res) => {
 
 }
 
-exports.isLoggedIn = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    next();  // carry on!
-    return;
-  }
-  const error = {
-    message: 'You must be logged in to do that!',
-    success: false
-  };
-  res.status(401).json(error);
-}
+// exports.isLoggedIn = (req, res, next) => {
+//   if (req.isAuthenticated()) {
+//     next();  // carry on!
+//     return;
+//   }
+//   const error = {
+//     message: 'You must be logged in to do that!',
+//     success: false
+//   };
+//   res.status(401).json(error);
+// }
 
 exports.authenticate = async (req, res) => {
   try {
     console.log('request body', req.body);
-    User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
+    User.authenticate({ session: false })(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
         res.status(500).json(err);
@@ -112,7 +110,6 @@ exports.authenticate = async (req, res) => {
 
         req.login(user, function(err) {
           res.send({
-            username: user.name,
             message: `${user.name} is now logged in!`,
             success: true,
             token: token
@@ -125,9 +122,5 @@ exports.authenticate = async (req, res) => {
     console.log('authController Error: ' + error);
     res.status(500).json(error);
   }
-
-}
-
-exports.meFromToken = async (req, res) => {
 
 }

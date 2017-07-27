@@ -46,15 +46,14 @@ router.get('/account', (req, res) => res.render('account'));
 
 /* USERS */
 
-router.post('/api/register',
+router.post('/register',
   userController.validateRegister,
   userController.register,
   authController.login
 );
 
-// router.post('/api/login', authController.login);
-router.get('/api/logout', authController.logout);
-router.post('/api/login', authController.authenticate);
+router.post('/login', authController.login);
+router.get('/logout', authController.logout);
 
 // route middleware to verify a token
 // any routes after this middleware will require a token
@@ -82,15 +81,13 @@ router.use(function(req, res, next) {
 
 });
 
-router.get('/api/users',
+router.get('/users',
   userController.getUsers
 );
 
-router.get('/api/me/from/token', authController.meFromToken);
-
 /* ITEMS */
 
-router.get('/api/items', catchErrors(itemsController.getItems));
+router.get('/items', catchErrors(itemsController.getItems));
 
 /* POST /api/items
  * Creates a new item
@@ -103,7 +100,7 @@ router.post('/api/items',
 /* GET /api/items/:id
  * Get an item by the specified id
  */
- router.get('/api/items/:id', catchErrors(itemsController.getItem));
+ router.get('/items/:id', catchErrors(itemsController.getItem));
 
 /* PUT /api/upc
  * Looks up an item by UPC-A barcode.
@@ -113,8 +110,7 @@ router.post('/api/items',
 // )
 
 /* UPC */
-router.put('/api/upc',
-  authController.isLoggedIn,
+router.put('/upc',  
   itemsController.getItemByUPC,
   upcController.lookupUPC,
   awsController.uploadImage,

@@ -2,13 +2,13 @@
 require('dotenv').config({ path: '.env' });
 
 const express = require('express');
-const session = require('express-session');
-const MongoStore = require('connect-mongo')(session);
+// const session = require('express-session');
+// const MongoStore = require('connect-mongo')(session);
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
 const assert = require('assert');
 const cors = require('cors');
 const passport = require('passport');  // for user authentication
@@ -71,25 +71,27 @@ app.use(expressValidator({
 }));
 
 // populates req.cookies with any cookies that came along with the request
-app.use(cookieParser());
+// app.use(cookieParser());
 
-// set up express session
-app.use(session({
-  secret: process.env.SECRET,
-  key: process.env.KEY,
-  resave: false,
-  saveUninitialized: false,
-  store: new MongoStore({ mongooseConnection: mongoose.connection })
-}));
+// // set up express session
+// app.use(session({
+//   secret: process.env.SECRET,
+//   key: process.env.KEY,
+//   resave: false,
+//   saveUninitialized: false,
+//   store: new MongoStore({ mongooseConnection: mongoose.connection })
+// }));
 
 // set up Passport JS to handle user authentication
 // initialize passport
 app.use(passport.initialize());
 // our app uses persistent login sessions, so use passport.session()
-app.use(passport.session());
+// app.use(passport.session());
 
 const User = mongoose.model('User');
 
+// set up passport-local LocalStrategy
+// passport-local-mongoose implements a LocalStrategy and serializeUser/deserializeUser
 passport.use(User.createStrategy());
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
@@ -114,7 +116,7 @@ app.use((req, res, next) => {
 });
 
 // Define a single route
-app.use('/', index.router);
+app.use('/api', index.router);
 
 
 app.use(errorHandlers.notFound);

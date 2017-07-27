@@ -26,13 +26,13 @@ exports.developmentErrors = (err, req, res, next) => {
   };
 
   res.status(err.status || 500);
-  // res.format({
-  //   // Based on the `Accept` http header
-  //   'text/html': () => {
-  //     res.render('error', errorDetails);
-  //   }, // Form Submit, Reload the page
-  //   'application/json': () => res.json(errorDetails) // Ajax call, send JSON back
-  // });
+  res.format({
+    // Based on the `Accept` http header
+    'text/html': () => {
+      res.render('error', errorDetails);
+    }, // Form Submit, Reload the page
+    'application/json': () => res.json(errorDetails) // Ajax call, send JSON back
+  });
   res.send(errorDetails);
 };
 
@@ -52,10 +52,12 @@ exports.productionErrors = (err, req, res, next) => {
 /*
   Not Found Error Handler
 
-  If we hit a route that is not found, we mark it as 404 and pass it along to the next error handler to display
+  If we hit a route that is not found, respond with 404 error
 */
 exports.notFound = (req, res, next) => {
-  const err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+  console.log(req.url);
+  res.status(404).json({
+    success: false,
+    error: `${req.url} not found`
+  })
 };
