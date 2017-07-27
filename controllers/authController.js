@@ -5,6 +5,7 @@ const promisify = require('es6-promisify');
 
 exports.login = (req, res) => {
   try {
+    console.log('request body', req.body);
     User.authenticate()(req.body.email, req.body.password, function(err, user, options) {
       if (err) {
         console.log('err', err);
@@ -50,7 +51,7 @@ exports.login = (req, res) => {
 exports.logout = (req, res) => {
   req.logout();
   res.status(200).send({
-    message: `${user.name} is logged out`,
+    message: 'You are now logged out! 👋',
     success: true
   })
 }
