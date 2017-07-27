@@ -142,16 +142,24 @@ exports.getItemByUPC = async (req, res, next) => {
   next();
 }
 
-/***/
+/* createItem() takes the data received from the upcitemdb API and
+ * stores it in an Item document.
+ *
+ * if req.item exists, then the item has already been created previously,
+ *
+ * if req.doc exists, then a document returned from the upcitemdb API
+ * should be saved to the Item collection
+ */
 exports.createItem = async (req, res) => {
-  // if the request already contains an item, then nothing needs to be done here
+  // if the request already contains an item, then nothing needs to be done here so just return the item
   if (req.item) {
-    // next();
-    // return;
     res.status(200).json(req.item);
+    return;
   }
   if (req.doc) {
     const doc = req.doc;
+    doc.awsImages = [req.awsImage];
+    console.log(doc);
     const item = await (new Item(doc)).save();
     const result = {
       success: true,
@@ -159,6 +167,7 @@ exports.createItem = async (req, res) => {
       error: ''
     }
     res.json(result);
+
   }
 
 }

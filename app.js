@@ -96,13 +96,13 @@ app.set('port', (process.env.PORT || 5000));
 app.use(cors());
 app.options('*', cors());
 
-// pass variables
+// pass variables to all requests
 app.use((req, res, next) => {
+  console.log('%s %s user = %s', req.method, req.url, req.user);
   res.locals.user = req.user || null;
   res.locals.currentPath = req.path;
   next();
-})
-
+});
 
 // Define a single route
 app.use('/', index.router);

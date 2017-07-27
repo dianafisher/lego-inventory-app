@@ -96,6 +96,7 @@ router.post('/api/items',
 router.put('/api/upc',
   itemsController.getItemByUPC,
   upcController.lookupUPC,
+  awsController.uploadImage,
   itemsController.createItem
 );
 

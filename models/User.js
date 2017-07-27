@@ -65,6 +65,8 @@ userSchema.plugin(timestamps);
 const options = {
   usernameField: 'email',
   errorMessages: {
+    IncorrectPasswordError: 'Password or email are incorrect',
+    IncorrectUsernameError: 'Password or email are incorrect',    
     UserExistsError: 'A user with the given email is already registered.'
   }
 }

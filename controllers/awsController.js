@@ -33,14 +33,25 @@ exports.getSignedRequest = (req, res) => {
   });
 }
 
-exports.uploadImage = async (req, res) => {
+exports.uploadImage = async (req, res, next) => {
   console.log(req.body);
+  if (!req.doc) {
+    // res.status(404).send('No doc found in request.');
+    next();
+    return;
+  }
   try {
-    const url = req.body.url;
+    const item = req.doc;
+    const url = item.images[0];
     const imageURL = await this.uploadImageToS3(url);
     console.log('imageURL', imageURL);
-    const result = { imageURL };
-    res.status(200).json(result);
+    const awsImage = {
+      originalUrl: url,
+      awsUrl: imageURL
+    };
+    req.awsImage = awsImage;
+    // res.status(200).json(result);
+    next();
   }
   catch(error) {
     console.log('Error: ' + error);
