@@ -87,7 +87,8 @@ router.get('/users',
 
 /* ITEMS */
 
-router.get('/items', catchErrors(itemsController.getItems));
+router.get('/upc/items', catchErrors(itemsController.getItems));
+router.get('/items', userController.getItems);
 
 /* POST /api/items
  * Creates a new item

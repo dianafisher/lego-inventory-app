@@ -102,5 +102,47 @@ exports.addItem = async (req, res) => {
     res.status(404).send('Item not found');
   }
 
+}
 
+exports.getItems = async (req, res) => {
+  const decoded = req.decoded;
+  console.log('decoded', decoded);
+  const user = await User.findOne({ _id: decoded._id });
+  if (user) {
+    let page = req.query.page || 1;
+    console.log('page', page);
+    const limit = 2; // limit 10 items per page
+    let skip = (page * limit) - limit;
+    const count = user.items.length;
+    console.log('count', count);
+    // calculate the number of pages we have
+    const pages = Math.ceil(count / limit);
+    console.log('skip', skip);
+    let arr = [];
+    const items = user.items;
+    if (skip > items.length) {
+      console.log('skipped beyond the end of the array');
+      // page number goes beyond length of array,
+      // so just return the last page that makes sense.
+      page = pages;
+      skip = (page * limit) - limit;
+    } else {
+      for (var i = skip; i < skip+limit; i++) {
+        if (i < items.length) {
+          arr.push(items[i]);
+        } else {
+          break;
+        }
+      }
+    }
+    const result = {
+      arr,
+      page,
+      pages,
+      count
+    };
+    res.status(200).json(result);
+  } else {
+    res.status(404).send('User not found');
+  }
 }
