@@ -150,10 +150,11 @@ exports.getItemByUPC = async (req, res, next) => {
  * if req.doc exists, then a document returned from the upcitemdb API
  * should be saved to the Item collection
  */
-exports.createItem = async (req, res) => {
+exports.createItem = async (req, res, next) => {
   // if the request already contains an item, then nothing needs to be done here so just return the item
   if (req.item) {
-    res.status(200).json(req.item);
+    // res.status(200).json(req.item);
+    next();
     return;
   }
   if (req.doc) {
@@ -166,8 +167,9 @@ exports.createItem = async (req, res) => {
       item: item,
       error: ''
     }
-    res.json(result);
-
+    // res.json(result);
+    req.item = item;
+    next();
   }
 
 }

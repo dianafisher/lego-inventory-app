@@ -67,3 +67,40 @@ exports.getUsers = async (req, res) => {
   const users = await User.find({});
   res.json(users);
 }
+
+exports.addItem = async (req, res) => {
+  if (req.item) {
+    const item = req.item;
+    const decoded = req.decoded;
+    console.log('decoded', decoded);
+    const user = await User.findOne({ _id: decoded._id });
+    // const user = await User.findById(user.id);
+    if (user) {
+      user.items.push({
+        title: item.title,
+        upc: item.upc,
+        description: item.description,
+        ean: item.ean,
+        asin: item.asin,
+        brand: item.brand,
+        model: item.model,
+        color: item.color,
+        size: item.size,
+        dimension: item.dimension,
+        image: item.awsImages[0].awsUrl
+      });
+      user.save(function(err) {
+        if (!err) {
+          console.log('Success!');
+          res.status(200).json(user);
+        }
+      });
+    } else {
+      res.status(404).send('User not found');
+    }
+  } else {
+    res.status(404).send('Item not found');
+  }
+
+
+}

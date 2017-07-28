@@ -110,11 +110,12 @@ router.post('/api/items',
 // )
 
 /* UPC */
-router.put('/upc',  
+router.put('/upc',
   itemsController.getItemByUPC,
   upcController.lookupUPC,
   awsController.uploadImage,
-  itemsController.createItem
+  itemsController.createItem,
+  userController.addItem
 );
 
 /* Barcode Lookup */
