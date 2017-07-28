@@ -52,20 +52,25 @@ exports.login = (req, res) => {
 
 exports.logout = (req, res) => {
   console.log('session', req.session);
-  // req.logout();
-  if (req.session) {
-    // delete session object
-    req.session.destroy(function(err) {
-      if(err) {
-        res.status(500).json(error);
-      } else {
-        res.status(200).send({
-          message: 'You are now logged out! 👋',
-          success: true
-        })
-      }
-    });
-  }
+  req.logout();
+  res.status(200).send({
+    message: 'You are now logged out! 👋',
+    success: true
+  });
+
+  // if (req.session) {
+  //   // delete session object
+  //   req.session.destroy(function(err) {
+  //     if(err) {
+  //       res.status(500).json(error);
+  //     } else {
+  //       res.status(200).send({
+  //         message: 'You are now logged out! 👋',
+  //         success: true
+  //       })
+  //     }
+  //   });
+  // }
   // req.session.destroy();
 
 }
