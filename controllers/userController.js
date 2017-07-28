@@ -111,30 +111,31 @@ exports.getItems = async (req, res) => {
   if (user) {
     let page = req.query.page || 1;
     console.log('page', page);
-    const limit = 2; // limit 10 items per page
+    const limit = 3; // limit 10 items per page
     let skip = (page * limit) - limit;
     const count = user.items.length;
     console.log('count', count);
     // calculate the number of pages we have
     const pages = Math.ceil(count / limit);
     console.log('skip', skip);
-    let arr = [];
-    const items = user.items;
-    if (skip > items.length) {
+
+    if (page > pages) {
       console.log('skipped beyond the end of the array');
       // page number goes beyond length of array,
       // so just return the last page that makes sense.
       page = pages;
       skip = (page * limit) - limit;
-    } else {
-      for (var i = skip; i < skip+limit; i++) {
-        if (i < items.length) {
-          arr.push(items[i]);
-        } else {
-          break;
-        }
+    }
+    let arr = [];
+    const items = user.items;
+    for (var i = skip; i < skip+limit; i++) {
+      if (i < items.length) {
+        arr.push(items[i]);
+      } else {
+        break;
       }
     }
+
     const result = {
       arr,
       page,
