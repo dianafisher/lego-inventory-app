@@ -42,13 +42,22 @@ exports.uploadImage = async (req, res, next) => {
   }
   try {
     const item = req.doc;
-    const url = item.images[0];
-    const imageURL = await this.uploadImageToS3(url);
-    console.log('imageURL', imageURL);
-    const awsImage = {
-      originalUrl: url,
-      awsUrl: imageURL
+    // if the item does not have any images, then use the placeholder image.
+    let awsImage = {
+      originalUrl: 'https://s3-us-west-2.amazonaws.com/inventory-app-bucket/no-image-avail.jpg',
+      awsUrl: 'https://s3-us-west-2.amazonaws.com/inventory-app-bucket/no-image-avail.jpg'
     };
+
+    if (item.images && item.images.length) {
+      const url = item.images[0];
+      const imageURL = await this.uploadImageToS3(url);
+      console.log('imageURL', imageURL);
+      awsImage = {
+        originalUrl: url,
+        awsUrl: imageURL
+      };
+    }
+
     req.awsImage = awsImage;
     // res.status(200).json(result);
     next();

@@ -170,6 +170,11 @@ exports.createItem = async (req, res, next) => {
     // res.json(result);
     req.item = item;
     next();
+  } else {
+    const error = {
+      msg: 'No item or document found'
+    };
+    res.status(404).json(error);
   }
 
 }

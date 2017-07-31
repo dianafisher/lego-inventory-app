@@ -75,7 +75,7 @@ exports.addItem = async (req, res) => {
     console.log('decoded', decoded);
     const user = await User.findOne({ _id: decoded._id });
     // const user = await User.findById(user.id);
-    if (user) {
+    if (user) {      
       user.items.push({
         title: item.title,
         upc: item.upc,

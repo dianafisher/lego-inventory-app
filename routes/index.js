@@ -103,19 +103,15 @@ router.post('/api/items',
  */
  router.get('/items/:id', catchErrors(itemsController.getItem));
 
-/* PUT /api/upc
+/* PUT /upc
  * Looks up an item by UPC-A barcode.
  */
-// router.put('/api/upc',
-//   barcodeController.lookupBarCode
-// )
 
-/* UPC */
 router.put('/upc',
   itemsController.getItemByUPC,
   upcController.lookupUPC,
   awsController.uploadImage,
-  itemsController.createItem,
+  catchErrors(itemsController.createItem),
   userController.addItem
 );
 
