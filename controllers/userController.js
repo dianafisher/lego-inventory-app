@@ -68,6 +68,108 @@ exports.getUsers = async (req, res) => {
   res.json(users);
 }
 
+/* findItem will search the User document for an item by it's UPC code.
+ *
+ */
+exports.findItem = async (req, res, next) => {
+  const upc = req.body.upc;
+  // get the user from the token in the request
+  const decoded = req.decoded;
+
+  // const user = await User.findOne({ _id: decoded._id },
+  //   {
+  //     "items.upc": true,
+  //     "items.title": true,
+  //     "items.count": true
+  //   }
+  // );
+  // if (user) {
+  //   console.log(user);
+  //   res.json(user);
+  // } else {
+  //   res.status(404).send('User not found');
+  // }
+
+  // find the user with the user id listed in the decoded token
+  await User.findOne({ _id: decoded._id }, function (err, user) {
+
+    if (user) {
+      // filter out the item with the corresponding upc
+      const item = user.items.filter(function (item) {
+        return item.upc = upc;
+      }).pop();
+      console.log('found item', item);
+      // update the count value of the item
+      let newCount = item.count + 1;
+      console.log('newCount = ', newCount);
+      item.count = newCount;
+      // save the user with the new data
+      user.save(function (err) {
+        if (err) {
+          console.log('error saving user:', err.message);
+        }
+      });
+      res.json(user);
+    } else {
+      console.log('error', err);
+      res.status(404).send('User not found');
+    }
+
+  });
+
+  // user = User.findOne({ _id: decoded.id} );
+  // if (user) {
+  //   const item = user.items.filter(function (item) {
+  //     return item.upc = upc;
+  //   }).pop();
+  //   if (item) {
+  //     console.log('found item', item);
+  //     let newCount = item.count + 1;
+  //     console.log('newCount = ', newCount);
+  //     item.count = newCount;
+  //     user.save(function (err) {
+  //       if (err) {
+  //         console.log('error saving user:', err.message);
+  //       }
+  //     });
+  //     res.json(user);
+  //   } else {
+  //     console.log('no item found, continue..');
+  //   }
+  //   next();
+  // } else {
+  //   res.status(404).send('User not found');
+  // }
+
+}
+
+exports.deleteItem = async (req, res) => {
+  //find the user with the user id listed in the decoded token
+  console.log('params', req.params);
+  const decoded = req.decoded;
+  await User.findOne({ _id: decoded._id }, function (err, user) {
+
+    if (user) {
+      const itemId = req.params.id;
+      user.items.id(itemId).remove();
+      user.save(function (err) {
+        if (err) {
+          console.log(err);
+        }
+        res.json(user);
+      });
+    } else {
+      res.status(404).send('User not found');
+    }
+  });
+
+// Favorite.update( {cn: req.params.name}, { $pullAll: {uid: [req.params.deleteUid] } } )
+
+
+
+}
+
+
 exports.addItem = async (req, res) => {
   if (req.item) {
     const item = req.item;
@@ -75,7 +177,7 @@ exports.addItem = async (req, res) => {
     console.log('decoded', decoded);
     const user = await User.findOne({ _id: decoded._id });
     // const user = await User.findById(user.id);
-    if (user) {      
+    if (user) {
       user.items.push({
         title: item.title,
         upc: item.upc,
@@ -87,7 +189,8 @@ exports.addItem = async (req, res) => {
         color: item.color,
         size: item.size,
         dimension: item.dimension,
-        image: item.awsImages[0].awsUrl
+        image: item.awsImages[0].awsUrl,
+        count: 1
       });
       user.save(function(err) {
         if (!err) {

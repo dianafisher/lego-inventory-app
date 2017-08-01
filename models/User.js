@@ -10,29 +10,28 @@ const UserItem = new mongoose.Schema({
   title: {
     type: String,
     trim: true,
-    required: 'Please enter an item title!'
   },
   upc: {
     type: String,
     unique: true,
     trim: true,
-    required: 'Please enter a upc code!'
   },
   description: String,
   ean: String,
   asin: String,
   brand: {
     type: String,
-    trim: true,
-    required: 'Please enter a brand!'
+    trim: true,    
   },
   model: String,
   color: String,
   size: String,
   dimension: String,
   image: String,
-  tags: [String]
+  tags: [String],
+  count: Number
  });
+
 
 const userSchema = new Schema({
   email: {
@@ -55,8 +54,7 @@ const userSchema = new Schema({
 
 // set up indexes
 userSchema.index({
-  title: 'text',
-  brand: 'text'
+  email: 'text'
 });
 
 userSchema.plugin(timestamps);
@@ -66,7 +64,7 @@ const options = {
   usernameField: 'email',
   errorMessages: {
     IncorrectPasswordError: 'Password or email are incorrect',
-    IncorrectUsernameError: 'Password or email are incorrect',    
+    IncorrectUsernameError: 'Password or email are incorrect',
     UserExistsError: 'A user with the given email is already registered.'
   }
 }

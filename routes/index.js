@@ -112,7 +112,12 @@ router.put('/upc',
   upcController.lookupUPC,
   awsController.uploadImage,
   catchErrors(itemsController.createItem),
-  userController.addItem
+  catchErrors(userController.findItem),
+  catchErrors(userController.addItem)
+);
+
+router.delete('/items/:id',
+  catchErrors(userController.deleteItem)
 );
 
 /* Barcode Lookup */

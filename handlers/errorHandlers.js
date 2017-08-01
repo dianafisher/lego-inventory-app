@@ -22,7 +22,7 @@ exports.developmentErrors = (err, req, res, next) => {
   err.stack = err.stack || '';
   const errorDetails = {
     message: err.message,
-    status: err.status,    
+    status: err.status,
     stack: err.stack
   };
 
@@ -49,9 +49,10 @@ exports.productionErrors = (err, req, res, next) => {
   If we hit a route that is not found, respond with 404 error
 */
 exports.notFound = (req, res, next) => {
-  console.log(req.url);
+  const message = `${req.method} ${req.url} not found`;
+  console.log(message);
   res.status(404).json({
     success: false,
-    error: `${req.url} not found`
+    error: message
   })
 };
