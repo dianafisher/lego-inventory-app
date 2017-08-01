@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   config: { autoIndex: false },
   useMongoClient: true,
 });
+mongoose.set('debug', true);
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
 db.on('error', (err) => {
@@ -32,6 +33,8 @@ db.on('error', (err) => {
 // import our models
 require('./models/Item');
 require('./models/User');
+require('./models/UPCItem');
+require('./models/UserItem');
 
 const index = require('./routes/index');
 
@@ -107,10 +110,7 @@ app.options('*', cors());
 // pass variables to all requests
 app.use((req, res, next) => {
   console.log('%s %s', req.method, req.url);
-  console.log('user: %s', req.user);
-  console.log('cookies:', req.cookies);
 
-  res.locals.user = req.user || null;
   res.locals.currentPath = req.path;
   next();
 });

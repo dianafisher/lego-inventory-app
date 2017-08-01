@@ -21,7 +21,7 @@ const UserItem = new mongoose.Schema({
   asin: String,
   brand: {
     type: String,
-    trim: true,    
+    trim: true,
   },
   model: String,
   color: String,
@@ -48,8 +48,7 @@ const userSchema = new Schema({
     trim: true
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date,
-  items: [UserItem]
+  resetPasswordExpires: Date,  
 }, { collection: 'users' })
 
 // set up indexes

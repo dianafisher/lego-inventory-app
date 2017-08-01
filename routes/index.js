@@ -14,7 +14,9 @@ const awsController = require('../controllers/awsController');
 const itemsController = require('../controllers/itemsController');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
-const upcController = require('../controllers/upcController');
+const upcitemdbController = require('../controllers/upcitemdbController');
+const userItemController = require('../controllers/userItemController');
+const upcItemController = require('../controllers/upcItemController');
 
 const { catchErrors } = require('../handlers/errorHandlers');
 
@@ -46,7 +48,8 @@ router.get('/account', (req, res) => res.render('account'));
 
 /* USERS */
 
-router.post('/register',
+// POST - create a new User
+router.post('/users',
   userController.validateRegister,
   userController.register,
   authController.login
@@ -56,7 +59,7 @@ router.post('/login', authController.login);
 router.get('/logout', authController.logout);
 
 // route middleware to verify a token
-// any routes after this middleware will require a token
+// any routes defined after this middleware will require a token
 router.use(function(req, res, next) {
   const token = req.body.token || req.query.token || req.headers['x-access-token'];
 
@@ -75,7 +78,7 @@ router.use(function(req, res, next) {
     // if there is no token, return an error
     return res.status(403).send({
         success: false,
-        message: 'No token provided.'
+        message: 'Access Denied.  No token provided.'
     });
   }
 
@@ -87,8 +90,11 @@ router.get('/users',
 
 /* ITEMS */
 
-router.get('/upc/items', catchErrors(itemsController.getItems));
-router.get('/items', userController.getItems);
+router.get('/upc/items', catchErrors(upcItemController.getUPCItems));
+// router.get('/items', userController.getItems);
+router.get('/items', userItemController.getUserItems);
+
+router.get('/user/items', catchErrors(userItemController.getUserItemByUPC));
 
 /* POST /api/items
  * Creates a new item
@@ -106,14 +112,13 @@ router.post('/api/items',
 /* PUT /upc
  * Looks up an item by UPC-A barcode.
  */
-
 router.put('/upc',
-  itemsController.getItemByUPC,
-  upcController.lookupUPC,
+  upcItemController.getItemByUPC,
+  upcitemdbController.lookupUPC,
   awsController.uploadImage,
-  catchErrors(itemsController.createItem),
-  catchErrors(userController.findItem),
-  catchErrors(userController.addItem)
+  catchErrors(upcItemController.createUPCItem),
+  catchErrors(userItemController.findUserItemWithUPC),
+  catchErrors(userItemController.createUserItem)
 );
 
 router.delete('/items/:id',

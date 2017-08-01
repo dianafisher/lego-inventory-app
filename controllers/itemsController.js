@@ -82,9 +82,12 @@ exports.addItem = async (req, res) => {
 // get items with pagination
 exports.getItems = async (req, res) => {
   // query the database for the list of all items
-  const page = req.params.page || 1;
+  console.log(req.query);
+  const page = req.query.page || 1;
   const limit = 10; // limit 10 items per page
   const skip = (page * limit) - limit;
+
+  console.log('skip', skip);
 
   const itemsPromise = Item.find()
     .skip(skip)

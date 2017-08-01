@@ -1,3 +1,5 @@
+// upcitemdbController is an interface to the upcitemdb.com API
+
 const https = require('https');
 const mongoose = require('mongoose');
 
@@ -7,9 +9,9 @@ const mongoose = require('mongoose');
  */
 exports.lookupUPC = async (req, res, next) => {
   console.log('lookupUPC');
-  if (req.item) {
-    /* if the request contains an item, then we have found this upc in
-       the database and do not have to call the upcitemdb.com api
+  if (req.upcItem) {
+    /* if the request contains a upcItem, then we have found this upc in
+       our database and do not have to call the upcitemdb.com api
     */
     // go on to the next middleware
     next();
@@ -19,6 +21,7 @@ exports.lookupUPC = async (req, res, next) => {
     const upc = req.body.upc;
     const doc = await getProductByUPC(upc);
     // console.log('document', doc);
+    // add the doc to the req object for the next middleware
     req.doc = doc;
     next();
   } catch(error) {

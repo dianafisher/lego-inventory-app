@@ -72,6 +72,7 @@ exports.getUsers = async (req, res) => {
  *
  */
 exports.findItem = async (req, res, next) => {
+  console.log('findItem');
   const upc = req.body.upc;
   // get the user from the token in the request
   const decoded = req.decoded;
@@ -98,18 +99,25 @@ exports.findItem = async (req, res, next) => {
       const item = user.items.filter(function (item) {
         return item.upc = upc;
       }).pop();
-      console.log('found item', item);
-      // update the count value of the item
-      let newCount = item.count + 1;
-      console.log('newCount = ', newCount);
-      item.count = newCount;
-      // save the user with the new data
-      user.save(function (err) {
-        if (err) {
-          console.log('error saving user:', err.message);
-        }
-      });
-      res.json(user);
+      if (item) {
+        console.log('found item', item);
+        // update the count value of the item
+        let newCount = item.count + 1;
+        console.log('newCount = ', newCount);
+        item.count = newCount;
+        // save the user with the new data
+        user.save(function (err) {
+          if (err) {
+            console.log('error saving user:', err.message);
+            res.status(400).send('Error updating User');
+          }
+        });
+        res.json(user);
+      } else {
+          console.log(`No item with ${upc} found`);
+          next();
+      }
+
     } else {
       console.log('error', err);
       res.status(404).send('User not found');
@@ -155,18 +163,16 @@ exports.deleteItem = async (req, res) => {
       user.save(function (err) {
         if (err) {
           console.log(err);
+          res.status(400).send('Error updating User');
+        } else {
+          // respond with the updated user
+          res.json(user);
         }
-        res.json(user);
       });
     } else {
       res.status(404).send('User not found');
     }
   });
-
-// Favorite.update( {cn: req.params.name}, { $pullAll: {uid: [req.params.deleteUid] } } )
-
-
-
 }
 
 
