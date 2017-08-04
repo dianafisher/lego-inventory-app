@@ -8,10 +8,10 @@ const https = require('https');
 
 const router = express.Router();
 
-const barcodeController = require('../controllers/barcodeController');
-const bricksetController = require('../controllers/bricksetController');
+// const barcodeController = require('../controllers/barcodeController');
+// const bricksetController = require('../controllers/bricksetController');
 const awsController = require('../controllers/awsController');
-const itemsController = require('../controllers/itemsController');
+// const itemsController = require('../controllers/itemsController');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
 const upcitemdbController = require('../controllers/upcitemdbController');
@@ -67,7 +67,13 @@ router.use(function(req, res, next) {
     // verfiy secret and check expiration
     jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
       if (err) {
-        return res.json({ success: false, message: 'Failed to authenticate token.' });
+        const error = {
+          success: false,
+          message: err.message,
+          name: err.name
+        };
+        console.log(error);       
+        return res.status(403).json(error);
       } else {
         // if everything is good, save to request for use in other routes
         req.decoded = decoded;
@@ -99,15 +105,15 @@ router.get('/user/items', catchErrors(userItemController.getUserItemByUPC));
 /* POST /api/items
  * Creates a new item
  */
-router.post('/api/items',
-  itemsController.validateItem,
-  itemsController.uploadImage,
-  itemsController.addItem
-)
+// router.post('/api/items',
+//   itemsController.validateItem,
+//   itemsController.uploadImage,
+//   itemsController.addItem
+// )
 /* GET /api/items/:id
  * Get an item by the specified id
  */
- router.get('/items/:id', catchErrors(itemsController.getItem));
+ router.get('/items/:id', catchErrors(userItemController.getItemById));
 
 /* PUT /upc
  * Looks up an item by UPC-A barcode.
@@ -121,27 +127,19 @@ router.put('/upc',
   catchErrors(userItemController.createUserItem)
 );
 
+/* DELETE /items/:id
+ * Deletes UserItem with provided id
+ */
 router.delete('/items/:id',
-  catchErrors(userController.deleteItem)
+  catchErrors(userItemController.deleteItem)
 );
 
-/* Barcode Lookup */
-
-/* "/barcodes"
- *
- * PUT: perform barcode lookup using api.upcitemdb.com
- * GET: get document with upc code
+/* UPDATE /items/:id
+ * Updates UserItem with provided id
  */
-
-router.put('/barcodes', barcodeController.lookupBarCode);
-router.get('/barcodes', barcodeController.findDocumentWithCode);
-
-// router.get('/downloadImage', barcodeController.downloadImage);
-
-router.get('/testKey', bricksetController.testApiKey);
-router.get('/getSets', bricksetController.getSets);
-
-router.get('/sign-s3', awsController.getSignedRequest);
+router.put('/items/:id',
+  catchErrors(userItemController.updateItem)
+);
 
 router.post('/image', awsController.uploadImage);
 

@@ -186,11 +186,25 @@ exports.getUserItems = async (req, res) => {
   res.json(result);
 }
 
+// Update a UserItem
+exports.updateItem = async (req, res) => {
+  const decodedUser = req.decoded;
+  let data = req.body || {};
+
+  await UserItem.update({ userId: decodedUser._id, _id: req.params.id }, data)
+    .then(item => {
+      res.status(200).json(item);
+    })
+    .catch(err => {
+      res.status(500).send(err);
+    })
+}
+
 // Delete a UserItem
 exports.deleteItem = async (req, res) => {
   const decodedUser = req.decoded;
 
-  await UserItem.findOneAndRemove({ userId: decodedUser._id, _id: req.params.itemId })
+  await UserItem.findOneAndRemove({ userId: decodedUser._id, _id: req.params.id })
     .then(() => {
       res.status(204)
     })
@@ -209,5 +223,17 @@ exports.getUserItemByUPC = async (req, res) => {
     })
     .catch(err => {
       res.send(500, err)
+    })
+}
+
+exports.getItemById = async (req, res) => {
+  const decodedUser = req.decoded;
+
+  await UserItem.findOne({ userId: decodedUser._id, _id: req.params.id })
+    .then((item) => {
+      res.status(200).json(item)
+    })
+    .catch(err => {
+      res.status(400).send(err);
     })
 }
