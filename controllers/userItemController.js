@@ -190,7 +190,7 @@ exports.getUserItems = async (req, res) => {
 exports.updateItem = async (req, res) => {
   const decodedUser = req.decoded;
   let data = req.body || {};
-
+  console.log('data', data);
   await UserItem.update({ userId: decodedUser._id, _id: req.params.id }, data)
     .then(item => {
       res.status(200).json(item);
