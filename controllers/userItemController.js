@@ -147,7 +147,7 @@ exports.getUserItems = async (req, res) => {
   const pageNumber = parseInt(req.query.page, 10);
   let page = pageNumber || 1;
   console.log('page', page);
-  const limit = 10; // limit to 10 documents per page
+  const limit = 6; // limit to 6 documents per page
   let skip = (page * limit) - limit;
   console.log('skip', skip);
 
@@ -206,7 +206,11 @@ exports.deleteItem = async (req, res) => {
 
   await UserItem.findOneAndRemove({ userId: decodedUser._id, _id: req.params.id })
     .then(() => {
-      res.status(204)
+      const message = {
+        success: true,
+        msg: 'Item deleted'
+      }
+      res.status(200).json(message);
     })
     .catch(err => {
       res.status(500).send(err);
