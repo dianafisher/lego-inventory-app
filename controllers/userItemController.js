@@ -144,8 +144,8 @@ exports.getUserItems = async (req, res) => {
   const decodedUser = req.decoded;
 
   console.log(req.query);
-
-  let page = req.query.page || 1;
+  const pageNumber = parseInt(req.query.page, 10);
+  let page = pageNumber || 1;
   console.log('page', page);
   const limit = 10; // limit to 10 documents per page
   let skip = (page * limit) - limit;
