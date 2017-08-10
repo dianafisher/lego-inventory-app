@@ -147,7 +147,7 @@ exports.getUserItems = async (req, res) => {
   const pageNumber = parseInt(req.query.page, 10);
   let page = pageNumber || 1;
   console.log('page', page);
-  const limit = 6; // limit to 6 documents per page
+  const limit = 20; // limit to 20 documents per page
   let skip = (page * limit) - limit;
   console.log('skip', skip);
 
@@ -184,6 +184,31 @@ exports.getUserItems = async (req, res) => {
   };
 
   res.json(result);
+}
+
+exports.getBrands = async (req, res) => {
+  const decodedUser = req.decoded;
+  await UserItem.find({ userId: decodedUser._id }).distinct('brand')
+    .then(results => {
+      res.status(200).json(results);
+    })
+    .catch(err => {
+      res.status(500).send(err);
+    })
+}
+
+exports.getItemsByBrand = async (req, res) => {
+  const decodedUser = req.decoded;
+  console.log(req.query);
+  const brand = req.query.brand;
+  console.log('brand:', brand);
+  await UserItem.find({ userId: decodedUser._id, brand: req.query.brand })
+    .then(results => {
+      res.status(200).json(results);
+    })
+    .catch(err => {
+      res.status(500).send(err);
+    })
 }
 
 // Update a UserItem

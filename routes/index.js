@@ -72,7 +72,7 @@ router.use(function(req, res, next) {
           message: err.message,
           name: err.name
         };
-        console.log(error);       
+        console.log(error);
         return res.status(403).json(error);
       } else {
         // if everything is good, save to request for use in other routes
@@ -101,6 +101,9 @@ router.get('/upc/items', catchErrors(upcItemController.getUPCItems));
 router.get('/items', userItemController.getUserItems);
 
 router.get('/user/items', catchErrors(userItemController.getUserItemByUPC));
+
+router.get('/brands', catchErrors(userItemController.getBrands));
+router.get('/brands/items', catchErrors(userItemController.getItemsByBrand));
 
 /* POST /api/items
  * Creates a new item
