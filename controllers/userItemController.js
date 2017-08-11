@@ -147,7 +147,8 @@ exports.getUserItems = async (req, res) => {
   const pageNumber = parseInt(req.query.page, 10);
   let page = pageNumber || 1;
   console.log('page', page);
-  const limit = 20; // limit to 20 documents per page
+
+  const limit = parseInt(req.query.limit, 10); // limit to 20 documents per page
   let skip = (page * limit) - limit;
   console.log('skip', skip);
 
@@ -202,13 +203,63 @@ exports.getItemsByBrand = async (req, res) => {
   console.log(req.query);
   const brand = req.query.brand;
   console.log('brand:', brand);
-  await UserItem.find({ userId: decodedUser._id, brand: req.query.brand })
-    .then(results => {
-      res.status(200).json(results);
+  const pageNumber = parseInt(req.query.page, 10);
+  let page = pageNumber || 1;
+  console.log('page', page);
+  const limit = parseInt(req.query.limit, 10);
+  console.log('limit', limit);
+  let skip = (page * limit) - limit;
+  console.log('skip', skip);
+
+  const itemsPromise = UserItem.find(
+    {
+      userId: decodedUser._id,
+      brand: req.query.brand
     })
-    .catch(err => {
-      res.status(500).send(err);
-    })
+    .skip(skip)
+    .limit(limit)
+    .sort({ created: 'desc' });
+
+  // count the number of UserItem records in the database for this User
+  const countPromise = UserItem.count({
+    userId: decodedUser._id,
+    brand: req.query.brand
+  });
+
+  // wait for both promises to return
+  const [items, count] = await Promise.all([itemsPromise, countPromise]);
+
+  // calculate the number of pages we have
+  const pages = Math.ceil(count / limit);
+  if (!items.length && skip) {
+    console.log(`page ${page} does not exist!`);
+
+    const error = {
+      success: false,
+      message: `page ${page} does not exist!`
+    }
+    res.status(500).json(error);
+    return;
+  }
+
+  const result = {
+    items,
+    page,
+    pages,
+    count
+  };
+
+  res.status(200).json(result);
+
+  // const brand = req.query.brand;
+  // console.log('brand:', brand);
+  // await UserItem.find({ userId: decodedUser._id, brand: req.query.brand })
+  //   .then(results => {
+  //     res.status(200).json(results);
+  //   })
+  //   .catch(err => {
+  //     res.status(500).send(err);
+  //   })
 }
 
 // Update a UserItem
