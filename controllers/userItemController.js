@@ -267,8 +267,9 @@ exports.updateItem = async (req, res) => {
   const decodedUser = req.decoded;
   let data = req.body || {};
   console.log('data', data);
-  await UserItem.update({ userId: decodedUser._id, _id: req.params.id }, data)
+  await UserItem.findOneAndUpdate({ userId: decodedUser._id, _id: req.params.id }, data, {new: true})
     .then(item => {
+      console.log('item', item);
       res.status(200).json(item);
     })
     .catch(err => {
